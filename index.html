@@ -631,106 +631,32 @@
             }
         }
 
-        // ---------- PROFILE MODAL (with friend requests tab) ----------
+        // ---------- PROFILE MODAL (with friend requests) ----------
         async function showProfileModal() {
             if (!currentUser) return;
-            const d = userScores;
-            const pendingRequests = await db.collection('friendships')
-                .where('participants', 'array-contains', currentUser.uid)
-                .where('status', '==', 'pending')
-                .where('sentBy', '!=', currentUser.uid)
-                .get();
-            const requestCount = pendingRequests.size;
-            const profileTab = `
-              <p><strong>Display Name:</strong> ${d.displayName || 'N/A'}</p>
-              <p><strong>Username:</strong> <span id="profile-username">${d.username || 'N/A'}</span></p>
-              <p><strong>Email:</strong> ${d.email || 'N/A'}</p>
-              <p><strong>Coins:</strong> 🪙 ${d.coins || 0}</p>
-              <p><strong>Total Wins:</strong> ${d.totalWins || 0}</p>
-              <p><strong>Total Games:</strong> ${d.totalGames || 0}</p>
-              <button class="btn btn-outline btn-sm" id="copy-username-btn">📋 Copy Username</button>
-              <hr>
-              <button class="btn btn-danger btn-sm" id="clear-finished-games-btn">🗑️ Clear My Finished Games</button>
-            `;
-            const requestsTab = `
-              <div id="friend-requests-list">${pendingRequests.empty ? '<p>No pending friend requests.</p>' : ''}</div>
-            `;
+            const userDoc = await db.collection('users').doc(currentUser.uid).get();
+            const userData = userDoc.data() || {};
             const html = `
-              <div class="tab-buttons">
-                <button class="tab-btn active" data-tab="profile">Profile</button>
-                <button class="tab-btn" data-tab="requests">Friend Requests ${requestCount > 0 ? `<span style="background:var(--red);border-radius:50%;padding:0 6px;">${requestCount}</span>` : ''}</button>
-              </div>
-              <div id="tab-profile">${profileTab}</div>
-              <div id="tab-requests" style="display:none;">${requestsTab}</div>
+              <p><strong>Display Name:</strong> ${userData.displayName || '?'}</p>
+              <p><strong>Username:</strong> ${userData.username || '?'}</p>
+              <p><strong>Email:</strong> ${userData.email || '?'}</p>
+              <p><strong>Coins:</strong> ${userData.coins || 0}</p>
+              <p><strong>Total Wins:</strong> ${userData.totalWins || 0}</p>
+              <p><strong>Total Games Played:</strong> ${userData.totalGames || 0}</p>
+              <hr>
+              <button class="btn btn-danger" id="btn-delete-account">Delete Account</button>
             `;
-            const overlay = showModal('👤 Your Profile', html);
-            // Copy username
-            overlay.querySelector('#copy-username-btn').addEventListener('click', () => {
-                navigator.clipboard.writeText(userScores.username).then(() => showToast('Username copied!')).catch(() => showToast('Failed'));
-            });
-            // Clear finished games
-            overlay.querySelector('#clear-finished-games-btn').addEventListener('click', async () => {
-                if (!confirm('Delete all your finished games?')) return;
-                try {
-                    const snap = await db.collection('activeGames')
-                        .where('status', '==', 'finished')
-                        .get();
-                    const batch = db.batch();
-                    snap.forEach(doc => {
-                        if (doc.data().participants && doc.data().participants.includes(currentUser.uid)) batch.delete(doc.ref);
-                    });
-                    await batch.commit();
-                    showToast('Finished games cleared!');
-                } catch (e) { showToast('Error cleaning games'); console.error(e); }
-            });
-            // Tab switching
-            overlay.querySelectorAll('.tab-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    overlay.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    const tab = btn.dataset.tab;
-                    overlay.querySelector('#tab-profile').style.display = tab === 'profile' ? 'block' : 'none';
-                    overlay.querySelector('#tab-requests').style.display = tab === 'requests' ? 'block' : 'none';
-                });
-            });
-            // Load friend requests if any
-            if (!pendingRequests.empty) {
-                const listEl = overlay.querySelector('#friend-requests-list');
-                pendingRequests.forEach(reqDoc => {
-                    const data = reqDoc.data();
-                    const senderUid = data.sentBy;
-                    db.collection('users').doc(senderUid).get().then(senderSnap => {
-                        const senderName = senderSnap.exists ? senderSnap.data().displayName : 'Unknown';
-                        const reqHtml = `
-                          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-                            <span>${senderName}</span>
-                            <div>
-                              <button class="btn btn-accent btn-sm accept-req" data-fid="${reqDoc.id}">Accept</button>
-                              <button class="btn btn-outline btn-sm reject-req" data-fid="${reqDoc.id}">Reject</button>
-                            </div>
-                          </div>`;
-                        listEl.insertAdjacentHTML('beforeend', reqHtml);
-                    });
-                });
-            }
-            // Accept/reject delegation
-            overlay.querySelector('#tab-requests').addEventListener('click', async (e) => {
-                const btn = e.target.closest('button');
-                if (!btn) return;
-                const fid = btn.dataset.fid;
-                if (btn.classList.contains('accept-req')) {
+            const overlay = showModal('👤 Profile', html);
+            overlay.querySelector('#btn-delete-account').addEventListener('click', async () => {
+                if (confirm('Are you sure you want to delete your account? This cannot be undone.')) {
                     try {
-                        await db.collection('friendships').doc(fid).update({ status: 'accepted' });
-                        showToast('Friend request accepted!');
-                        btn.parentElement.parentElement.remove();
-                        loadFriends();
-                    } catch (err) { showToast('Error accepting request'); console.error(err); }
-                } else if (btn.classList.contains('reject-req')) {
-                    try {
-                        await db.collection('friendships').doc(fid).delete();
-                        btn.parentElement.parentElement.remove();
-                        showToast('Request rejected');
-                    } catch (err) { showToast('Error rejecting request'); console.error(err); }
+                        await db.collection('users').doc(currentUser.uid).delete();
+                        await currentUser.delete();
+                        showToast('Account deleted.');
+                        renderAuthScreen();
+                    } catch (e) {
+                        showToast('Error deleting account: ' + e.message);
+                    }
                 }
             });
         }
