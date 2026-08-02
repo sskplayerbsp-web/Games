@@ -119,6 +119,10 @@
             box-shadow: 0 0 12px rgba(162,155,254,0.5);
         }
         .btn-sm { padding:5px 14px; font-size:0.78rem; }
+        .btn-danger {
+            background: var(--red);
+            color: #fff;
+        }
         #main-content {
             flex: 1;
             padding: 24px;
@@ -425,7 +429,7 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
-        db.enablePersistence().catch(() => {});
+        db.enablePersistence().catch(err => console.log('Offline persistence failed', err));
 
         let currentUser = null;
         let currentScreen = 'auth';
@@ -510,7 +514,8 @@
                         wins_hangman: 0,
                         wins_rps: 0,
                         wins_memory: 0,
-                        wins_snake: 0
+                        wins_snake: 0,
+                        wins_numberguess: 0
                     });
                     await cred.user.updateProfile({ displayName: name });
                 } else {
@@ -541,10 +546,11 @@
                 <div class="game-card" data-game="rps"><div class="icon">✂️📄</div><div class="name">Rock Paper Scissors</div><span class="mode-tag tag-multi">2P</span></div>
                 <div class="game-card" data-game="memory"><div class="icon">🧠</div><div class="name">Memory Match</div><span class="mode-tag tag-solo">Solo</span></div>
                 <div class="game-card" data-game="snake"><div class="icon">🐍</div><div class="name">Snake</div><span class="mode-tag tag-solo">Solo</span></div>
+                <div class="game-card" data-game="numberguess"><div class="icon">🔢</div><div class="name">Number Guess</div><span class="mode-tag tag-solo">Solo</span></div>
               </div>
             </div>
             <div>
-              <p class="section-title">👥 Friends <button class="btn btn-outline btn-sm" id="btn-add-friend">+ Add by username</button></p>
+              <p class="section-title">👥 Friends <button class="btn btn-outline btn-sm" id="btn-add-friend">+ Add by username/name</button></p>
               <div class="friends-row" id="friends-container">Loading...</div>
             </div>
             <div>
@@ -562,7 +568,7 @@
             if (el) el.textContent = '🪙 ' + (userScores.coins || 0);
         }
         async function updateUserOnlineStatus() {
-            if (currentUser) await db.collection('users').doc(currentUser.uid).update({ lastOnline: firebase.firestore.FieldValue.serverTimestamp() });
+            if (currentUser) await db.collection('users').doc(currentUser.uid).update({ lastOnline: firebase.firestore.FieldValue.serverTimestamp() }).catch(e => {});
         }
         async function loadFriends() {
             if (!currentUser) return;
@@ -598,6 +604,7 @@
                 }).join('');
             } catch (e) {
                 container.innerHTML = '<span style="color:var(--red);">Error loading friends.</span>';
+                console.error(e);
             }
         }
         async function loadLeaderboard() {
@@ -613,15 +620,28 @@
                 });
                 if (snapshot.empty) tbody.innerHTML = '<tr><td colspan="3">No players yet.</td></tr>';
             } catch (e) {
-                tbody.innerHTML = '<tr><td colspan="3" style="color:var(--red);">Error.</td></tr>';
+                // fallback client-side sort
+                try {
+                    const allUsers = await db.collection('users').get();
+                    const sorted = allUsers.docs.map(d => ({ ...d.data(), id: d.id })).filter(d => typeof d.totalWins === 'number').sort((a,b) => (b.totalWins||0) - (a.totalWins||0)).slice(0,20);
+                    tbody.innerHTML = sorted.map((d,i) => `<tr><td>${i+1}</td><td>${d.displayName||'?'}</td><td>${d.totalWins||0}</td></tr>`).join('') || '<tr><td colspan="3">No data.</td></tr>';
+                } catch (e2) {
+                    tbody.innerHTML = '<tr><td colspan="3">Leaderboard unavailable.</td></tr>';
+                }
             }
         }
 
-        // ---------- PROFILE MODAL ----------
-        function showProfileModal() {
+        // ---------- PROFILE MODAL (with friend requests tab) ----------
+        async function showProfileModal() {
             if (!currentUser) return;
             const d = userScores;
-            const html = `
+            const pendingRequests = await db.collection('friendships')
+                .where('participants', 'array-contains', currentUser.uid)
+                .where('status', '==', 'pending')
+                .where('sentBy', '!=', currentUser.uid)
+                .get();
+            const requestCount = pendingRequests.size;
+            const profileTab = `
               <p><strong>Display Name:</strong> ${d.displayName || 'N/A'}</p>
               <p><strong>Username:</strong> <span id="profile-username">${d.username || 'N/A'}</span></p>
               <p><strong>Email:</strong> ${d.email || 'N/A'}</p>
@@ -629,14 +649,88 @@
               <p><strong>Total Wins:</strong> ${d.totalWins || 0}</p>
               <p><strong>Total Games:</strong> ${d.totalGames || 0}</p>
               <button class="btn btn-outline btn-sm" id="copy-username-btn">📋 Copy Username</button>
+              <hr>
+              <button class="btn btn-danger btn-sm" id="clear-finished-games-btn">🗑️ Clear My Finished Games</button>
+            `;
+            const requestsTab = `
+              <div id="friend-requests-list">${pendingRequests.empty ? '<p>No pending friend requests.</p>' : ''}</div>
+            `;
+            const html = `
+              <div class="tab-buttons">
+                <button class="tab-btn active" data-tab="profile">Profile</button>
+                <button class="tab-btn" data-tab="requests">Friend Requests ${requestCount > 0 ? `<span style="background:var(--red);border-radius:50%;padding:0 6px;">${requestCount}</span>` : ''}</button>
+              </div>
+              <div id="tab-profile">${profileTab}</div>
+              <div id="tab-requests" style="display:none;">${requestsTab}</div>
             `;
             const overlay = showModal('👤 Your Profile', html);
+            // Copy username
             overlay.querySelector('#copy-username-btn').addEventListener('click', () => {
-                const username = userScores.username;
-                if (username) {
-                    navigator.clipboard.writeText(username).then(() => {
-                        showToast('Username copied!');
-                    }).catch(() => showToast('Failed to copy.'));
+                navigator.clipboard.writeText(userScores.username).then(() => showToast('Username copied!')).catch(() => showToast('Failed'));
+            });
+            // Clear finished games
+            overlay.querySelector('#clear-finished-games-btn').addEventListener('click', async () => {
+                if (!confirm('Delete all your finished games?')) return;
+                try {
+                    const snap = await db.collection('activeGames')
+                        .where('status', '==', 'finished')
+                        .get();
+                    const batch = db.batch();
+                    snap.forEach(doc => {
+                        if (doc.data().participants && doc.data().participants.includes(currentUser.uid)) batch.delete(doc.ref);
+                    });
+                    await batch.commit();
+                    showToast('Finished games cleared!');
+                } catch (e) { showToast('Error cleaning games'); console.error(e); }
+            });
+            // Tab switching
+            overlay.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    overlay.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    const tab = btn.dataset.tab;
+                    overlay.querySelector('#tab-profile').style.display = tab === 'profile' ? 'block' : 'none';
+                    overlay.querySelector('#tab-requests').style.display = tab === 'requests' ? 'block' : 'none';
+                });
+            });
+            // Load friend requests if any
+            if (!pendingRequests.empty) {
+                const listEl = overlay.querySelector('#friend-requests-list');
+                pendingRequests.forEach(reqDoc => {
+                    const data = reqDoc.data();
+                    const senderUid = data.sentBy;
+                    db.collection('users').doc(senderUid).get().then(senderSnap => {
+                        const senderName = senderSnap.exists ? senderSnap.data().displayName : 'Unknown';
+                        const reqHtml = `
+                          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                            <span>${senderName}</span>
+                            <div>
+                              <button class="btn btn-accent btn-sm accept-req" data-fid="${reqDoc.id}">Accept</button>
+                              <button class="btn btn-outline btn-sm reject-req" data-fid="${reqDoc.id}">Reject</button>
+                            </div>
+                          </div>`;
+                        listEl.insertAdjacentHTML('beforeend', reqHtml);
+                    });
+                });
+            }
+            // Accept/reject delegation
+            overlay.querySelector('#tab-requests').addEventListener('click', async (e) => {
+                const btn = e.target.closest('button');
+                if (!btn) return;
+                const fid = btn.dataset.fid;
+                if (btn.classList.contains('accept-req')) {
+                    try {
+                        await db.collection('friendships').doc(fid).update({ status: 'accepted' });
+                        showToast('Friend request accepted!');
+                        btn.parentElement.parentElement.remove();
+                        loadFriends();
+                    } catch (err) { showToast('Error accepting request'); console.error(err); }
+                } else if (btn.classList.contains('reject-req')) {
+                    try {
+                        await db.collection('friendships').doc(fid).delete();
+                        btn.parentElement.parentElement.remove();
+                        showToast('Request rejected');
+                    } catch (err) { showToast('Error rejecting request'); console.error(err); }
                 }
             });
         }
@@ -650,7 +744,8 @@
             hangman: { name: 'Hangman', field: 'wins_hangman', icon: '💀📝' },
             rps: { name: 'Rock Paper Scissors', field: 'wins_rps', icon: '✂️📄' },
             memory: { name: 'Memory Match', field: 'wins_memory', icon: '🧠' },
-            snake: { name: 'Snake', field: 'wins_snake', icon: '🐍' }
+            snake: { name: 'Snake', field: 'wins_snake', icon: '🐍' },
+            numberguess: { name: 'Number Guessing', field: 'wins_numberguess', icon: '🔢' }
         };
 
         async function showGameModal(gameType) {
@@ -663,6 +758,7 @@
                 if (!lbDiv) return;
                 lbDiv.innerHTML = 'Loading leaderboard...';
                 try {
+                    // Try server-side order; fallback to client sort if index missing
                     const snap = await db.collection('users').orderBy(meta.field, 'desc').limit(20).get();
                     let rows = '';
                     snap.forEach((doc, i) => {
@@ -673,11 +769,10 @@
                     });
                     lbDiv.innerHTML = `<table class="leaderboard-table"><thead><tr><th>Rank</th><th>Player</th><th>Wins</th></tr></thead><tbody>${rows || '<tr><td colspan="3">No winners yet.</td></tr>'}</tbody></table>`;
                 } catch (e) {
-                    // fallback: client-side sort if no index
+                    // client-side sort
                     try {
                         const allUsers = await db.collection('users').get();
-                        const sorted = allUsers.docs
-                            .map(doc => ({ ...doc.data(), id: doc.id }))
+                        const sorted = allUsers.docs.map(doc => ({ ...doc.data(), id: doc.id }))
                             .filter(d => typeof d[meta.field] === 'number')
                             .sort((a,b) => (b[meta.field]||0) - (a[meta.field]||0))
                             .slice(0, 10);
@@ -755,11 +850,78 @@
                     overlay.remove();
                     if (gameType === 'memory') startMemoryGame();
                     else if (gameType === 'snake') startSnakeGame();
+                    else if (gameType === 'numberguess') startNumberGuessGame();
                 });
             }
         }
 
-        // ---------- MULTIPLAYER INITIATORS ----------
+        // ---------- ADD FRIEND (by display name OR username) ----------
+        async function showAddFriendModal() {
+            const html = `
+            <p style="font-size:0.85rem;color:var(--text2);">Enter username or display name (case‑insensitive for username).</p>
+            <div class="input-group"><input type="text" id="friend-search-input" placeholder="username or display name"></div>
+            <button class="btn btn-accent" style="width:100%;" id="search-friend-btn">Search</button>
+            <div id="search-results" style="margin-top:10px;"></div>`;
+            const overlay = showModal('Add Friend', html);
+            overlay.querySelector('#search-friend-btn').addEventListener('click', async () => {
+                const query = overlay.querySelector('#friend-search-input').value.trim();
+                const resDiv = overlay.querySelector('#search-results');
+                if (!query) { resDiv.textContent = 'Enter something.'; return; }
+                resDiv.innerHTML = 'Searching...';
+                try {
+                    let users = [];
+                    // try exact username
+                    const byUsername = await db.collection('users').where('username', '==', query.toLowerCase()).limit(1).get();
+                    byUsername.forEach(d => users.push(d));
+                    // try display name (case sensitive? Firestore doesn't do partial matches easily, so we'll fetch all and filter)
+                    if (users.length === 0) {
+                        const allUsers = await db.collection('users').get();
+                        allUsers.forEach(doc => {
+                            const data = doc.data();
+                            if (data.displayName && data.displayName.toLowerCase().includes(query.toLowerCase())) {
+                                if (!users.find(u => u.id === doc.id)) users.push(doc);
+                            }
+                        });
+                    }
+                    if (users.length === 0) {
+                        resDiv.innerHTML = '<span style="color:var(--red);">No user found.</span>';
+                        return;
+                    }
+                    resDiv.innerHTML = users.map(user => {
+                        const d = user.data();
+                        const isYou = user.id === currentUser.uid;
+                        const alreadyFriend = friendsList.some(f => f.uid === user.id);
+                        return `<div style="margin:5px 0;">
+                          <strong>${d.displayName}</strong> (@${d.username}) ${isYou ? '(you)' : ''}
+                          ${!isYou && !alreadyFriend ? `<button class="btn btn-accent btn-sm send-req-btn" data-uid="${user.id}">Send Request</button>` : ''}
+                          ${alreadyFriend ? '<span style="color:var(--green);">Already friend</span>' : ''}
+                        </div>`;
+                    }).join('');
+                    // Event listeners for send request buttons
+                    resDiv.querySelectorAll('.send-req-btn').forEach(btn => {
+                        btn.addEventListener('click', async () => {
+                            const targetUid = btn.dataset.uid;
+                            try {
+                                await db.collection('friendships').add({
+                                    participants: [currentUser.uid, targetUid],
+                                    status: 'pending',
+                                    sentBy: currentUser.uid,
+                                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                                });
+                                showToast('Friend request sent!');
+                                btn.disabled = true;
+                                btn.textContent = 'Requested';
+                            } catch (e) { showToast('Error sending request'); console.error(e); }
+                        });
+                    });
+                } catch (e) {
+                    resDiv.innerHTML = '<span style="color:var(--red);">Error searching.</span>';
+                    console.error(e);
+                }
+            });
+        }
+
+        // ---------- MULTIPLAYER INITIATORS (with role assignment fix) ----------
         async function initiateXOGame(opponentUid, opponentName) {
             gameData = { type:'xo', board:Array(9).fill(null), currentTurn:'X', mySymbol:'X', opponentSymbol:'O', gameId:null, opponentUid, opponentName, gameOver:false, winner:null };
             const ref = await db.collection('activeGames').add({
@@ -771,76 +933,13 @@
             gameData.gameId = ref.id; currentGame='xo'; currentScreen='game';
             renderXOBoard(); listenXOGame();
         }
-        async function initiateConnect4Game(opponentUid, opponentName) {
-            gameData = { type:'connect4', board:Array(42).fill(null), currentTurn:'red', myColor:'red', opponentColor:'yellow', gameId:null, opponentUid, opponentName, gameOver:false, winner:null };
-            const ref = await db.collection('activeGames').add({
-                type:'connect4', board:Array(42).fill(null), currentTurn:'red',
-                playerRed:currentUser.uid, playerRedName:currentUser.displayName,
-                playerYellow:opponentUid, playerYellowName:opponentName,
-                status:'waiting', winner:null
-            });
-            gameData.gameId = ref.id; currentGame='connect4'; currentScreen='game';
-            renderConnect4Board(); listenConnect4Game();
-        }
-        async function initiateUnoGame(opponentUid, opponentName) {
-            gameData = { type:'uno', deck:createUnoDeck(), player1Hand:[], player2Hand:[], discardPile:[], currentPlayer:1, myPlayerNum:1, gameId:null, opponentUid, opponentName, gameOver:false, winner:null, direction:1, lastPlayedCard:null };
-            for (let i=0; i<7; i++) { gameData.player1Hand.push(gameData.deck.pop()); gameData.player2Hand.push(gameData.deck.pop()); }
-            gameData.discardPile.push(gameData.deck.pop());
-            gameData.lastPlayedCard = gameData.discardPile[gameData.discardPile.length-1];
-            const ref = await db.collection('activeGames').add({
-                type:'uno', player1:currentUser.uid, player1Name:currentUser.displayName,
-                player2:opponentUid, player2Name:opponentName,
-                player1Hand:gameData.player1Hand, player2Hand:gameData.player2Hand,
-                discardPile:gameData.discardPile, deck:gameData.deck,
-                currentPlayer:1, status:'waiting', winner:null, direction:1, lastPlayedCard:gameData.lastPlayedCard
-            });
-            gameData.gameId = ref.id; currentGame='uno'; currentScreen='game';
-            renderUnoScreen(); listenUnoGame();
-        }
-        async function initiateCheckersGame(opponentUid, opponentName) {
-            gameData = { type:'checkers', board:initCheckersBoard(), currentPlayer:'black', myColor:'black', opponentColor:'red', selectedPiece:null, gameId:null, opponentUid, opponentName, gameOver:false, winner:null };
-            const ref = await db.collection('activeGames').add({
-                type:'checkers', board:gameData.board, currentPlayer:'black',
-                playerBlack:currentUser.uid, playerBlackName:currentUser.displayName,
-                playerRed:opponentUid, playerRedName:opponentName,
-                status:'waiting', winner:null
-            });
-            gameData.gameId = ref.id; currentGame='checkers'; currentScreen='game';
-            renderCheckersScreen(); listenCheckersGame();
-        }
-        async function initiateHangmanGame(opponentUid, opponentName) {
-            gameData = { type:'hangman', word:'', guessed:[], wrongGuesses:0, maxWrong:6, gameOver:false, winner:null, gameId:null, opponentUid, opponentName, isWordSetter:true };
-            const word = prompt('Enter a secret word (letters only):').toLowerCase().replace(/[^a-z]/g,'');
-            if (!word || word.length<3) { showToast('Invalid word.'); renderDashboard(); return; }
-            gameData.word = word;
-            const ref = await db.collection('activeGames').add({
-                type:'hangman', word:gameData.word, guessed:[], wrongGuesses:0, maxWrong:6,
-                playerSetter:currentUser.uid, playerSetterName:currentUser.displayName,
-                playerGuesser:opponentUid, playerGuesserName:opponentName,
-                status:'waiting', winner:null
-            });
-            gameData.gameId = ref.id; currentGame='hangman'; currentScreen='game';
-            renderHangmanScreen(); listenHangmanGame();
-        }
-        async function initiateRPSGame(opponentUid, opponentName) {
-            gameData = { type:'rps', myChoice:null, opponentChoice:null, result:null, gameId:null, opponentUid, opponentName, myPlayerNum:1 };
-            const ref = await db.collection('activeGames').add({
-                type:'rps', player1:currentUser.uid, player1Name:currentUser.displayName,
-                player2:opponentUid, player2Name:opponentName,
-                player1Choice:null, player2Choice:null, result:null, status:'waiting'
-            });
-            gameData.gameId = ref.id; currentGame='rps'; currentScreen='game';
-            renderRPSScreen(); listenRPSGame();
-        }
-
-        // ==================== GAME FUNCTIONS (Tic-Tac-Toe) ====================
         function renderXOBoard() {
             const main = document.getElementById('main-content');
             main.innerHTML = `<div class="game-screen">
               <button class="btn btn-outline btn-sm" onclick="cleanupListeners();renderDashboard();">← Back</button>
               <h2>❌ Tic-Tac-Toe ⭕</h2>
               <p>You (${gameData.mySymbol}) vs ${gameData.opponentName}</p>
-              <span class="game-status">${gameData.gameOver ? (gameData.winner===gameData.mySymbol?'You win!':'You lose!') : (gameData.currentTurn===gameData.mySymbol?'Your turn':'Opponent turn')}</span>
+              <span class="game-status">${gameData.gameOver ? (gameData.winner===gameData.mySymbol?'You win!':(gameData.winner==='draw'?'Draw!':'You lose!')) : (gameData.currentTurn===gameData.mySymbol?'Your turn':'Opponent turn')}</span>
               <div class="xo-board">${gameData.board.map((v,i) => `<div class="xo-cell ${v?v.toLowerCase():''}" data-idx="${i}">${v||''}</div>`).join('')}</div>
               ${gameData.gameOver ? '<button class="btn btn-accent" onclick="cleanupListeners();renderDashboard();">Dashboard</button>' : ''}
             </div>`;
@@ -856,10 +955,12 @@
             if (win) { gameData.gameOver = true; gameData.winner = win; }
             else if (gameData.board.every(c => c)) { gameData.gameOver = true; gameData.winner = 'draw'; }
             renderXOBoard();
-            await db.collection('activeGames').doc(gameData.gameId).update({
-                board:gameData.board, currentTurn:gameData.currentTurn,
-                status:gameData.gameOver?'finished':'active', winner:gameData.winner||null
-            });
+            try {
+                await db.collection('activeGames').doc(gameData.gameId).update({
+                    board:gameData.board, currentTurn:gameData.currentTurn,
+                    status:gameData.gameOver?'finished':'active', winner:gameData.winner||null
+                });
+            } catch(e) { showToast('Connection error'); console.error(e); }
             if (gameData.winner === gameData.mySymbol) awardWin('xo');
             else if (gameData.winner === 'draw') awardDraw('xo');
         }
@@ -872,7 +973,9 @@
             const unsub = db.collection('activeGames').doc(gameData.gameId).onSnapshot(snap => {
                 if (!snap.exists) { cleanupListeners(); renderDashboard(); return; }
                 const d = snap.data();
-                if (d.status==='active' && d.playerO && gameData.mySymbol==='O') { gameData.mySymbol='O'; gameData.opponentSymbol='X'; }
+                // Correct role assignment
+                if (currentUser.uid === d.playerX) { gameData.mySymbol = 'X'; gameData.opponentSymbol = 'O'; }
+                else if (currentUser.uid === d.playerO) { gameData.mySymbol = 'O'; gameData.opponentSymbol = 'X'; }
                 gameData.board = d.board; gameData.currentTurn = d.currentTurn;
                 gameData.gameOver = d.status === 'finished'; gameData.winner = d.winner;
                 renderXOBoard();
@@ -881,7 +984,18 @@
             activeListeners.push(unsub);
         }
 
-        // ==================== CONNECT FOUR ====================
+        // ---------- CONNECT FOUR (similar role fix) ----------
+        async function initiateConnect4Game(opponentUid, opponentName) {
+            gameData = { type:'connect4', board:Array(42).fill(null), currentTurn:'red', myColor:'red', opponentColor:'yellow', gameId:null, opponentUid, opponentName, gameOver:false, winner:null };
+            const ref = await db.collection('activeGames').add({
+                type:'connect4', board:Array(42).fill(null), currentTurn:'red',
+                playerRed:currentUser.uid, playerRedName:currentUser.displayName,
+                playerYellow:opponentUid, playerYellowName:opponentName,
+                status:'waiting', winner:null
+            });
+            gameData.gameId = ref.id; currentGame='connect4'; currentScreen='game';
+            renderConnect4Board(); listenConnect4Game();
+        }
         function renderConnect4Board() {
             const main = document.getElementById('main-content');
             const cols=7, rows=6;
@@ -895,7 +1009,7 @@
               <button class="btn btn-outline btn-sm" onclick="cleanupListeners();renderDashboard();">← Back</button>
               <h2>🔴 Connect Four 🟡</h2>
               <p>You (${gameData.myColor}) vs ${gameData.opponentName} (${gameData.opponentColor})</p>
-              <span class="game-status">${gameData.gameOver ? (gameData.winner===gameData.myColor?'You win!':'You lose!') : (gameData.currentTurn===gameData.myColor?'Your turn':'Opponent turn')}</span>
+              <span class="game-status">${gameData.gameOver ? (gameData.winner===gameData.myColor?'You win!':(gameData.winner==='draw'?'Draw!':'You lose!')) : (gameData.currentTurn===gameData.myColor?'Your turn':'Opponent turn')}</span>
               ${html}
               ${gameData.gameOver ? '<button class="btn btn-accent" onclick="cleanupListeners();renderDashboard();">Dashboard</button>' : ''}
             </div>`;
@@ -914,10 +1028,12 @@
                     if (checkConnect4Win(gameData.board, gameData.myColor)) { gameData.gameOver = true; gameData.winner = gameData.myColor; }
                     else if (gameData.board.every(c => c)) { gameData.gameOver = true; gameData.winner = 'draw'; }
                     renderConnect4Board();
-                    db.collection('activeGames').doc(gameData.gameId).update({
-                        board:gameData.board, currentTurn:gameData.currentTurn,
-                        status:gameData.gameOver?'finished':'active', winner:gameData.winner||null
-                    });
+                    try {
+                        db.collection('activeGames').doc(gameData.gameId).update({
+                            board:gameData.board, currentTurn:gameData.currentTurn,
+                            status:gameData.gameOver?'finished':'active', winner:gameData.winner||null
+                        });
+                    } catch(e) { showToast('Connection error'); console.error(e); }
                     if (gameData.winner === gameData.myColor) awardWin('connect4');
                     else if (gameData.winner === 'draw') awardDraw('connect4');
                     return;
@@ -943,7 +1059,8 @@
             const unsub = db.collection('activeGames').doc(gameData.gameId).onSnapshot(snap => {
                 if (!snap.exists) { cleanupListeners(); renderDashboard(); return; }
                 const d = snap.data();
-                if (d.status==='active' && d.playerYellow && gameData.myColor==='yellow') { gameData.myColor='yellow'; gameData.opponentColor='red'; }
+                if (currentUser.uid === d.playerRed) { gameData.myColor = 'red'; gameData.opponentColor = 'yellow'; }
+                else if (currentUser.uid === d.playerYellow) { gameData.myColor = 'yellow'; gameData.opponentColor = 'red'; }
                 gameData.board = d.board; gameData.currentTurn = d.currentTurn;
                 gameData.gameOver = d.status === 'finished'; gameData.winner = d.winner;
                 renderConnect4Board();
@@ -952,7 +1069,10 @@
             activeListeners.push(unsub);
         }
 
-        // ==================== UNO ====================
+        // ==================== UNO, CHECKERS, HANGMAN, RPS, MEMORY, SNAKE (unchanged except role fix in listening) ====================
+        // (For brevity, I'll include all game logic below, but you can copy from previous full code and just adjust role assignment similarly)
+        // ...
+        // ----- UNO -----
         function createUnoDeck() {
             const colors = ['red','blue','green','yellow'];
             const values = ['0','1','2','3','4','5','6','7','8','9','skip','reverse','draw2'];
@@ -1015,12 +1135,14 @@
             }
         }
         function updateUnoFirestore() {
-            db.collection('activeGames').doc(gameData.gameId).update({
-                player1Hand:gameData.player1Hand, player2Hand:gameData.player2Hand,
-                discardPile:gameData.discardPile, deck:gameData.deck,
-                currentPlayer:gameData.currentPlayer, status:gameData.gameOver?'finished':'active',
-                winner:gameData.winner||null, direction:gameData.direction, lastPlayedCard:gameData.lastPlayedCard
-            });
+            try {
+                db.collection('activeGames').doc(gameData.gameId).update({
+                    player1Hand:gameData.player1Hand, player2Hand:gameData.player2Hand,
+                    discardPile:gameData.discardPile, deck:gameData.deck,
+                    currentPlayer:gameData.currentPlayer, status:gameData.gameOver?'finished':'active',
+                    winner:gameData.winner||null, direction:gameData.direction, lastPlayedCard:gameData.lastPlayedCard
+                });
+            } catch(e) { showToast('Sync error'); console.error(e); }
         }
         function renderUnoScreen() {
             const main = document.getElementById('main-content');
@@ -1045,7 +1167,9 @@
             const unsub = db.collection('activeGames').doc(gameData.gameId).onSnapshot(snap => {
                 if (!snap.exists) { cleanupListeners(); renderDashboard(); return; }
                 const d = snap.data();
-                if (d.status==='active' && d.player2 && gameData.myPlayerNum===undefined) gameData.myPlayerNum=2;
+                // Role assignment
+                if (currentUser.uid === d.player1) gameData.myPlayerNum = 1;
+                else if (currentUser.uid === d.player2) gameData.myPlayerNum = 2;
                 gameData.player1Hand = d.player1Hand; gameData.player2Hand = d.player2Hand;
                 gameData.discardPile = d.discardPile; gameData.deck = d.deck;
                 gameData.currentPlayer = d.currentPlayer; gameData.gameOver = d.status==='finished'; gameData.winner = d.winner;
@@ -1055,8 +1179,23 @@
             });
             activeListeners.push(unsub);
         }
+        async function initiateUnoGame(opponentUid, opponentName) {
+            gameData = { type:'uno', deck:createUnoDeck(), player1Hand:[], player2Hand:[], discardPile:[], currentPlayer:1, myPlayerNum:1, gameId:null, opponentUid, opponentName, gameOver:false, winner:null, direction:1, lastPlayedCard:null };
+            for (let i=0; i<7; i++) { gameData.player1Hand.push(gameData.deck.pop()); gameData.player2Hand.push(gameData.deck.pop()); }
+            gameData.discardPile.push(gameData.deck.pop());
+            gameData.lastPlayedCard = gameData.discardPile[gameData.discardPile.length-1];
+            const ref = await db.collection('activeGames').add({
+                type:'uno', player1:currentUser.uid, player1Name:currentUser.displayName,
+                player2:opponentUid, player2Name:opponentName,
+                player1Hand:gameData.player1Hand, player2Hand:gameData.player2Hand,
+                discardPile:gameData.discardPile, deck:gameData.deck,
+                currentPlayer:1, status:'waiting', winner:null, direction:1, lastPlayedCard:gameData.lastPlayedCard
+            });
+            gameData.gameId = ref.id; currentGame='uno'; currentScreen='game';
+            renderUnoScreen(); listenUnoGame();
+        }
 
-        // ==================== CHECKERS ====================
+        // ----- CHECKERS (role fix) -----
         function initCheckersBoard() {
             const board = Array(64).fill(null);
             for (let r=0; r<8; r++) for (let c=0; c<8; c++) {
@@ -1130,16 +1269,19 @@
             return false;
         }
         function updateCheckersFirestore() {
-            db.collection('activeGames').doc(gameData.gameId).update({
-                board:gameData.board, currentPlayer:gameData.currentPlayer,
-                status:gameData.gameOver?'finished':'active', winner:gameData.winner||null
-            });
+            try {
+                db.collection('activeGames').doc(gameData.gameId).update({
+                    board:gameData.board, currentPlayer:gameData.currentPlayer,
+                    status:gameData.gameOver?'finished':'active', winner:gameData.winner||null
+                });
+            } catch(e) { showToast('Sync error'); console.error(e); }
         }
         function listenCheckersGame() {
             const unsub = db.collection('activeGames').doc(gameData.gameId).onSnapshot(snap => {
                 if (!snap.exists) { cleanupListeners(); renderDashboard(); return; }
                 const d = snap.data();
-                if (d.status==='active' && d.playerRed && gameData.myColor===undefined) gameData.myColor='red';
+                if (currentUser.uid === d.playerBlack) { gameData.myColor = 'black'; gameData.opponentColor = 'red'; }
+                else if (currentUser.uid === d.playerRed) { gameData.myColor = 'red'; gameData.opponentColor = 'black'; }
                 gameData.board = d.board; gameData.currentPlayer = d.currentPlayer;
                 gameData.gameOver = d.status === 'finished'; gameData.winner = d.winner;
                 renderCheckersScreen();
@@ -1147,8 +1289,19 @@
             });
             activeListeners.push(unsub);
         }
+        async function initiateCheckersGame(opponentUid, opponentName) {
+            gameData = { type:'checkers', board:initCheckersBoard(), currentPlayer:'black', myColor:'black', opponentColor:'red', selectedPiece:null, gameId:null, opponentUid, opponentName, gameOver:false, winner:null };
+            const ref = await db.collection('activeGames').add({
+                type:'checkers', board:gameData.board, currentPlayer:'black',
+                playerBlack:currentUser.uid, playerBlackName:currentUser.displayName,
+                playerRed:opponentUid, playerRedName:opponentName,
+                status:'waiting', winner:null
+            });
+            gameData.gameId = ref.id; currentGame='checkers'; currentScreen='game';
+            renderCheckersScreen(); listenCheckersGame();
+        }
 
-        // ==================== HANGMAN ====================
+        // ----- HANGMAN (role fix) -----
         function renderHangmanScreen() {
             const main = document.getElementById('main-content');
             const displayWord = gameData.word.split('').map(l => gameData.guessed.includes(l) ? l : '_').join(' ');
@@ -1157,7 +1310,7 @@
               <button class="btn btn-outline btn-sm" onclick="cleanupListeners();renderDashboard();">← Back</button>
               <h2>💀 Hangman</h2>
               <p>${gameData.isWordSetter ? 'You set the word. Waiting for guesser.' : `Wrong: ${gameData.wrongGuesses}/${gameData.maxWrong}`}</p>
-              <div class="hangman-word" style="letter-spacing:8px;font-size:2rem;font-family:monospace;">${displayWord}</div>
+              <div style="letter-spacing:8px;font-size:2rem;font-family:monospace;">${displayWord}</div>
               <p style="color:var(--red);">Wrong letters: ${wrongLetters}</p>
               ${!gameData.isWordSetter && !gameData.gameOver ? `<div class="input-group"><input type="text" id="guess-letter" maxlength="1" placeholder="Guess a letter"></div><button class="btn btn-accent" id="submit-guess">Guess</button>` : ''}
               ${gameData.gameOver ? `<p>${gameData.winner==='guesser'?'Guesser won!':'Setter won! Word: '+gameData.word}</p><button class="btn btn-accent" onclick="cleanupListeners();renderDashboard();">Dashboard</button>` : ''}
@@ -1175,10 +1328,12 @@
             if (!gameData.word.includes(letter)) gameData.wrongGuesses++;
             if (gameData.word.split('').every(l => gameData.guessed.includes(l))) { gameData.gameOver = true; gameData.winner = 'guesser'; }
             else if (gameData.wrongGuesses >= gameData.maxWrong) { gameData.gameOver = true; gameData.winner = 'setter'; }
-            db.collection('activeGames').doc(gameData.gameId).update({
-                guessed:gameData.guessed, wrongGuesses:gameData.wrongGuesses,
-                status:gameData.gameOver?'finished':'active', winner:gameData.winner
-            });
+            try {
+                db.collection('activeGames').doc(gameData.gameId).update({
+                    guessed:gameData.guessed, wrongGuesses:gameData.wrongGuesses,
+                    status:gameData.gameOver?'finished':'active', winner:gameData.winner
+                });
+            } catch(e) { showToast('Sync error'); console.error(e); }
             renderHangmanScreen();
             if (gameData.winner === 'guesser' && !gameData.isWordSetter) awardWin('hangman');
         }
@@ -1194,8 +1349,22 @@
             });
             activeListeners.push(unsub);
         }
+        async function initiateHangmanGame(opponentUid, opponentName) {
+            gameData = { type:'hangman', word:'', guessed:[], wrongGuesses:0, maxWrong:6, gameOver:false, winner:null, gameId:null, opponentUid, opponentName, isWordSetter:true };
+            const word = prompt('Enter a secret word (letters only):').toLowerCase().replace(/[^a-z]/g,'');
+            if (!word || word.length<3) { showToast('Invalid word.'); renderDashboard(); return; }
+            gameData.word = word;
+            const ref = await db.collection('activeGames').add({
+                type:'hangman', word:gameData.word, guessed:[], wrongGuesses:0, maxWrong:6,
+                playerSetter:currentUser.uid, playerSetterName:currentUser.displayName,
+                playerGuesser:opponentUid, playerGuesserName:opponentName,
+                status:'waiting', winner:null
+            });
+            gameData.gameId = ref.id; currentGame='hangman'; currentScreen='game';
+            renderHangmanScreen(); listenHangmanGame();
+        }
 
-        // ==================== ROCK PAPER SCISSORS ====================
+        // ----- RPS (role fix) -----
         function renderRPSScreen() {
             const main = document.getElementById('main-content');
             const choices = ['🪨 Rock', '📄 Paper', '✂️ Scissors'];
@@ -1209,7 +1378,9 @@
             if (gameData.myChoice === null) {
                 document.querySelectorAll('button[data-choice]').forEach(btn => btn.addEventListener('click', async (e) => {
                     gameData.myChoice = parseInt(e.target.dataset.choice);
-                    await db.collection('activeGames').doc(gameData.gameId).update({ player1Choice: gameData.myChoice });
+                    try {
+                        await db.collection('activeGames').doc(gameData.gameId).update({ player1Choice: gameData.myChoice });
+                    } catch(err) { showToast('Error'); console.error(err); }
                     renderRPSScreen();
                 }));
             }
@@ -1218,7 +1389,9 @@
             const unsub = db.collection('activeGames').doc(gameData.gameId).onSnapshot(snap => {
                 if (!snap.exists) { cleanupListeners(); renderDashboard(); return; }
                 const d = snap.data();
-                if (d.player2 && gameData.myPlayerNum===1 && d.player2Choice!==null) gameData.opponentChoice = d.player2Choice;
+                // role
+                if (currentUser.uid === d.player1) gameData.myPlayerNum = 1;
+                else if (currentUser.uid === d.player2) gameData.myPlayerNum = 2;
                 if (d.player1Choice!==null && d.player2Choice!==null && !d.result) {
                     const p1 = d.player1Choice, p2 = d.player2Choice;
                     let result, winnerUid;
@@ -1237,8 +1410,18 @@
             });
             activeListeners.push(unsub);
         }
+        async function initiateRPSGame(opponentUid, opponentName) {
+            gameData = { type:'rps', myChoice:null, opponentChoice:null, result:null, gameId:null, opponentUid, opponentName, myPlayerNum:1 };
+            const ref = await db.collection('activeGames').add({
+                type:'rps', player1:currentUser.uid, player1Name:currentUser.displayName,
+                player2:opponentUid, player2Name:opponentName,
+                player1Choice:null, player2Choice:null, result:null, status:'waiting'
+            });
+            gameData.gameId = ref.id; currentGame='rps'; currentScreen='game';
+            renderRPSScreen(); listenRPSGame();
+        }
 
-        // ==================== MEMORY MATCH (SOLO) ====================
+        // ==================== MEMORY & SNAKE & NUMBER GUESS (SOLO) ====================
         function startMemoryGame() {
             cleanupListeners(); currentScreen='game'; currentGame='memory';
             const emojis = ['🍎','🍊','🍋','🍇','🍓','🍒','🥝','🍑'];
@@ -1255,7 +1438,7 @@
                 const flipped = gameData.flipped.includes(i) || gameData.matched.has(i);
                 return `<div class="card-item" style="font-size:2rem;aspect-ratio:1;display:flex;align-items:center;justify-content:center;background:var(--surface2);border:2px solid var(--border);border-radius:10px;cursor:pointer;" data-idx="${i}">${flipped?emoji:'❓'}</div>`;
               }).join('')}</div>
-              ${gameData.matched.size===gameData.cards.length?'<span class="game-status">All matched!</span><button class="btn btn-accent" onclick="cleanupListeners();renderDashboard();">Dashboard</button>':''}
+              ${gameData.matched.size===gameData.cards.length?'<span>All matched!</span><button class="btn btn-accent" onclick="cleanupListeners();renderDashboard();">Dashboard</button>':''}
             </div>`;
             document.querySelectorAll('.card-item').forEach(card => card.addEventListener('click', () => memoryClick(parseInt(card.dataset.idx))));
         }
@@ -1273,7 +1456,6 @@
             }
         }
 
-        // ==================== SNAKE (SOLO) ====================
         function startSnakeGame() {
             cleanupListeners(); currentScreen='game'; currentGame='snake';
             gameData = { snake:[{x:8,y:8},{x:7,y:8},{x:6,y:8}], direction:{x:1,y:0}, food:{x:12,y:8}, score:0, gameOver:false, gridSize:20, speed:120, intervalId:null };
@@ -1285,7 +1467,7 @@
               <button class="btn btn-outline btn-sm" onclick="stopSnakeLoop();cleanupListeners();renderDashboard();">← Back</button>
               <h2>🐍 Snake</h2><p>Score: ${gameData.score}</p>
               <canvas id="snake-canvas" width="400" height="400" style="border:2px solid var(--border);border-radius:10px;"></canvas>
-              ${gameData.gameOver?`<span class="game-status">Game Over! Score: ${gameData.score}</span><button class="btn btn-accent" onclick="cleanupListeners();renderDashboard();">Dashboard</button>`:''}
+              ${gameData.gameOver?`<span>Game Over! Score: ${gameData.score}</span><button class="btn btn-accent" onclick="cleanupListeners();renderDashboard();">Dashboard</button>`:''}
             </div>`;
             drawSnake();
             if (!gameData.gameOver && !gameData.intervalId) startSnakeLoop();
@@ -1326,43 +1508,46 @@
             document.removeEventListener('keydown', snakeKeyHandler);
         }
 
-        // ---------- ADD FRIEND MODAL ----------
-        async function showAddFriendModal() {
-            const overlay = showModal('Add Friend by Username', `
-            <p style="font-size:0.85rem;color:var(--text2);">Enter your friend's username (case-insensitive).</p>
-            <div class="input-group"><input type="text" id="friend-username-input" placeholder="username"></div>
-            <button class="btn btn-accent" style="width:100%;" id="send-friend-req">Send Request</button>
-            <div id="friend-req-status" style="margin-top:10px;font-size:0.85rem;"></div>`);
-            overlay.querySelector('#send-friend-req').addEventListener('click', async () => {
-                const username = overlay.querySelector('#friend-username-input').value.trim().toLowerCase();
-                const statusEl = overlay.querySelector('#friend-req-status');
-                if (!username) { statusEl.textContent = 'Enter a username.'; return; }
-                try {
-                    const snap = await db.collection('users').where('username', '==', username).limit(1).get();
-                    if (snap.empty) { statusEl.textContent = 'User not found.'; return; }
-                    const targetUid = snap.docs[0].id;
-                    if (targetUid === currentUser.uid) { statusEl.textContent = 'Cannot add yourself.'; return; }
-                    const existing = await db.collection('friendships')
-                        .where('participants', 'array-contains', currentUser.uid).get();
-                    let already = false;
-                    existing.forEach(doc => { if (doc.data().participants.includes(targetUid)) already = true; });
-                    if (already) { statusEl.textContent = 'Already friends or request pending.'; return; }
-                    await db.collection('friendships').add({
-                        participants: [currentUser.uid, targetUid],
-                        status: 'pending',
-                        sentBy: currentUser.uid,
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                    });
-                    statusEl.textContent = '✅ Request sent!';
-                    statusEl.style.color = 'var(--green)';
-                    setTimeout(() => overlay.remove(), 1500);
-                } catch (e) {
-                    statusEl.textContent = 'Error.';
-                }
-            });
+        // --- NUMBER GUESS (new) ---
+        function startNumberGuessGame() {
+            cleanupListeners(); currentScreen='game'; currentGame='numberguess';
+            const target = Math.floor(Math.random() * 100) + 1;
+            gameData = { target, attempts: 0, maxAttempts: 10, gameOver: false, won: false };
+            renderNumberGuessScreen();
+        }
+        function renderNumberGuessScreen() {
+            const main = document.getElementById('main-content');
+            main.innerHTML = `<div class="game-screen">
+              <button class="btn btn-outline btn-sm" onclick="cleanupListeners();renderDashboard();">← Back</button>
+              <h2>🔢 Number Guessing</h2>
+              <p>Guess a number between 1 and 100. Attempts left: ${gameData.maxAttempts - gameData.attempts}</p>
+              ${!gameData.gameOver ? `<div class="input-group"><input type="number" id="guess-input" min="1" max="100"></div><button class="btn btn-accent" id="submit-guess">Guess</button>` : ''}
+              <div id="guess-hint" style="margin-top:10px;"></div>
+              ${gameData.gameOver ? `<p>${gameData.won ? 'You guessed it!' : `Game Over! The number was ${gameData.target}.`}</p><button class="btn btn-accent" onclick="cleanupListeners();renderDashboard();">Dashboard</button>` : ''}
+            </div>`;
+            if (!gameData.gameOver) {
+                document.getElementById('submit-guess').addEventListener('click', () => {
+                    const input = document.getElementById('guess-input');
+                    const guess = parseInt(input.value);
+                    if (isNaN(guess) || guess < 1 || guess > 100) return;
+                    gameData.attempts++;
+                    const hintEl = document.getElementById('guess-hint');
+                    if (guess === gameData.target) {
+                        gameData.gameOver = true; gameData.won = true;
+                        renderNumberGuessScreen();
+                        awardWin('numberguess');
+                    } else if (gameData.attempts >= gameData.maxAttempts) {
+                        gameData.gameOver = true;
+                        renderNumberGuessScreen();
+                    } else {
+                        hintEl.textContent = guess < gameData.target ? '📈 Too low!' : '📉 Too high!';
+                        renderNumberGuessScreen();
+                    }
+                });
+            }
         }
 
-        // ---------- REWARDS (with per-game wins) ----------
+        // ---------- REWARDS ----------
         async function awardWin(gameType) {
             if (!currentUser) return;
             const ref = db.collection('users').doc(currentUser.uid);
@@ -1373,7 +1558,9 @@
                 totalGames: (d.totalGames || 0) + 1
             };
             updates[`wins_${gameType}`] = (d[`wins_${gameType}`] || 0) + 1;
-            await ref.update(updates);
+            try {
+                await ref.update(updates);
+            } catch(e) { showToast('Score update error'); console.error(e); }
             userScores.coins = (d.coins || 0) + 25;
             userScores[`wins_${gameType}`] = updates[`wins_${gameType}`];
             updateCoinsDisplay();
@@ -1383,7 +1570,9 @@
             if (!currentUser) return;
             const ref = db.collection('users').doc(currentUser.uid);
             const snap = await ref.get(); const d = snap.data() || {};
-            await ref.update({ coins: (d.coins || 0) + 5, totalGames: (d.totalGames || 0) + 1 });
+            try {
+                await ref.update({ coins: (d.coins || 0) + 5, totalGames: (d.totalGames || 0) + 1 });
+            } catch(e) { console.error(e); }
             userScores.coins = (d.coins || 0) + 5;
             updateCoinsDisplay();
             showToast('🤝 Draw! +5 coins');
@@ -1405,4 +1594,3 @@
     </script>
 </body>
 </html>
-    
