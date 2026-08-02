@@ -119,10 +119,7 @@
             box-shadow: 0 0 12px rgba(162,155,254,0.5);
         }
         .btn-sm { padding:5px 14px; font-size:0.78rem; }
-        .btn-danger {
-            background: var(--red);
-            color: #fff;
-        }
+        .btn-danger { background: var(--red); color: #fff; }
         #main-content {
             flex: 1;
             padding: 24px;
@@ -249,96 +246,54 @@
             width: 100%;
         }
         .xo-board,
-        .connect4-board {
-            display: grid;
-            gap: 4px;
-        }
-        .xo-board {
-            grid-template-columns: repeat(3, 1fr);
-            max-width: 280px;
-        }
+        .connect4-board { display: grid; gap: 4px; }
+        .xo-board { grid-template-columns: repeat(3, 1fr); max-width: 280px; }
         .xo-cell {
-            aspect-ratio: 1;
-            background: var(--surface2);
-            border: 2px solid var(--border);
-            border-radius: 10px;
-            font-size: 2.5rem;
-            font-weight: 800;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            aspect-ratio: 1; background: var(--surface2);
+            border: 2px solid var(--border); border-radius: 10px;
+            font-size: 2.5rem; font-weight: 800;
+            display: flex; align-items: center; justify-content: center;
             cursor: pointer;
         }
-        .xo-cell.x { color: #ff6b6b; }
-        .xo-cell.o { color: #74b9ff; }
-        .connect4-board {
-            grid-template-columns: repeat(7, 1fr);
-            max-width: 420px;
-        }
+        .xo-cell.x { color: #ff6b6b; } .xo-cell.o { color: #74b9ff; }
+        .connect4-board { grid-template-columns: repeat(7, 1fr); max-width: 420px; }
         .c4-cell {
-            aspect-ratio: 1;
-            background: var(--surface2);
-            border: 2px solid var(--border);
-            border-radius: 50%;
+            aspect-ratio: 1; background: var(--surface2);
+            border: 2px solid var(--border); border-radius: 50%;
             cursor: pointer;
         }
         .c4-cell.red { background: #ff6b6b; box-shadow: 0 0 15px #ff6b6b; }
         .c4-cell.yellow { background: #f9ca24; box-shadow: 0 0 15px #f9ca24; }
         .uno-card {
-            width: 55px;
-            height: 85px;
-            border-radius: 8px;
-            border: 2px solid #fff;
-            font-weight: 700;
-            font-size: 1.1rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            margin: 4px;
-            cursor: pointer;
-            transition: 0.2s;
-            box-shadow: 0 0 8px rgba(0,0,0,0.5);
+            width: 55px; height: 85px; border-radius: 8px;
+            border: 2px solid #fff; font-weight: 700; font-size: 1.1rem;
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; margin: 4px; cursor: pointer;
+            transition: 0.2s; box-shadow: 0 0 8px rgba(0,0,0,0.5);
         }
-        .uno-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 0 15px rgba(255,255,255,0.3);
-        }
-        .uno-red { background: #e74c3c; }
-        .uno-blue { background: #3498db; }
-        .uno-green { background: #2ecc71; }
-        .uno-yellow { background: #f1c40f; color: #000; }
+        .uno-card:hover { transform: translateY(-8px); box-shadow: 0 0 15px rgba(255,255,255,0.3); }
+        .uno-red { background: #e74c3c; } .uno-blue { background: #3498db; }
+        .uno-green { background: #2ecc71; } .uno-yellow { background: #f1c40f; color: #000; }
         .uno-wild { background: #111; }
         .checkerboard {
-            display: grid;
-            grid-template-columns: repeat(8, 40px);
-            gap: 0;
-            border: 2px solid var(--border);
+            display: grid; grid-template-columns: repeat(8, 40px);
+            gap: 0; border: 2px solid var(--border);
         }
         .checker-cell {
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            cursor: pointer;
+            width: 40px; height: 40px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; cursor: pointer;
         }
         .checker-cell.light { background: #d2b48c; }
         .checker-cell.dark { background: #8b4513; }
         .checker-cell.selected { box-shadow: inset 0 0 0 3px var(--accent); }
         .toast {
-            position: fixed;
-            bottom: 30px;
-            left: 50%;
+            position: fixed; bottom: 30px; left: 50%;
             transform: translateX(-50%);
-            background: var(--surface2);
-            color: #fff;
-            padding: 12px 24px;
-            border-radius: 25px;
+            background: var(--surface2); color: #fff;
+            padding: 12px 24px; border-radius: 25px;
             border: 1px solid var(--border);
-            z-index: 200;
-            font-weight: 600;
+            z-index: 200; font-weight: 600;
             box-shadow: 0 0 20px rgba(108,92,231,0.5);
             animation: fadeInUp 0.3s;
         }
@@ -347,56 +302,30 @@
             to { opacity: 1; transform: translateX(-50%) translateY(0); }
         }
         .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.7);
-            z-index: 100;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); z-index: 100;
+            display: flex; align-items: center; justify-content: center;
         }
         .modal {
-            background: var(--surface);
-            border-radius: var(--radius);
-            padding: 24px;
-            max-width: 450px;
-            width: 90%;
+            background: var(--surface); border-radius: var(--radius);
+            padding: 24px; max-width: 450px; width: 90%;
             border: 1px solid var(--border);
             box-shadow: 0 0 30px rgba(108,92,231,0.6);
-            max-height: 80vh;
-            overflow-y: auto;
+            max-height: 80vh; overflow-y: auto;
         }
         .close-btn {
-            float: right;
-            cursor: pointer;
-            font-size: 1.4rem;
-            color: var(--text2);
-            background: none;
-            border: none;
+            float: right; cursor: pointer; font-size: 1.4rem;
+            color: var(--text2); background: none; border: none;
         }
-        .tab-buttons {
-            display: flex;
-            margin-bottom: 16px;
-            gap: 8px;
-        }
+        .tab-buttons { display: flex; margin-bottom: 16px; gap: 8px; }
         .tab-btn {
-            flex:1;
-            background: var(--surface2);
-            border: 1px solid var(--border);
-            color: var(--text);
-            padding: 8px;
-            border-radius: 20px;
-            cursor: pointer;
+            flex:1; background: var(--surface2);
+            border: 1px solid var(--border); color: var(--text);
+            padding: 8px; border-radius: 20px; cursor: pointer;
             font-weight: 600;
         }
-        .tab-btn.active {
-            background: var(--accent);
-            color: white;
-            border-color: var(--accent);
-        }
+        .tab-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
     </style>
 </head>
 <body>
@@ -429,13 +358,13 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
-        db.enablePersistence().catch(err => console.log('Offline persistence failed', err));
+        db.enablePersistence().catch(err => console.log('Offline persistence error:', err));
 
         let currentUser = null;
         let currentScreen = 'auth';
         let currentGame = null;
         let gameData = {};
-        let friendsList = [];  // {uid, friendshipId, displayName, online}
+        let friendsList = [];
         let userScores = {};
         let activeListeners = [];
 
@@ -499,23 +428,13 @@
                     if (!usernameSnap.empty) { errEl.textContent = 'Username already taken.'; errEl.style.display = 'block'; return; }
                     const cred = await auth.createUserWithEmailAndPassword(email, password);
                     await db.collection('users').doc(cred.user.uid).set({
-                        displayName: name,
-                        username: username,
-                        email: email,
-                        coins: 100,
-                        totalWins: 0,
-                        totalGames: 0,
+                        displayName: name, username: username, email: email, coins: 100,
+                        totalWins: 0, totalGames: 0,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                         lastOnline: firebase.firestore.FieldValue.serverTimestamp(),
-                        wins_xo: 0,
-                        wins_connect4: 0,
-                        wins_uno: 0,
-                        wins_checkers: 0,
-                        wins_hangman: 0,
-                        wins_rps: 0,
-                        wins_memory: 0,
-                        wins_snake: 0,
-                        wins_numberguess: 0
+                        wins_xo: 0, wins_connect4: 0, wins_uno: 0,
+                        wins_checkers: 0, wins_hangman: 0, wins_rps: 0,
+                        wins_memory: 0, wins_snake: 0, wins_numberguess: 0
                     });
                     await cred.user.updateProfile({ displayName: name });
                 } else {
@@ -568,7 +487,7 @@
             if (el) el.textContent = '🪙 ' + (userScores.coins || 0);
         }
         async function updateUserOnlineStatus() {
-            if (currentUser) await db.collection('users').doc(currentUser.uid).update({ lastOnline: firebase.firestore.FieldValue.serverTimestamp() }).catch(e => {});
+            if (currentUser) await db.collection('users').doc(currentUser.uid).update({ lastOnline: firebase.firestore.FieldValue.serverTimestamp() }).catch(() => {});
         }
         async function loadFriends() {
             if (!currentUser) return;
@@ -602,10 +521,7 @@
                       ${isOnline ? '<span style="font-size:0.7rem;color:var(--green);margin-left:4px;">Online</span>' : ''}
                     </div>`;
                 }).join('');
-            } catch (e) {
-                container.innerHTML = '<span style="color:var(--red);">Error loading friends.</span>';
-                console.error(e);
-            }
+            } catch (e) { container.innerHTML = '<span style="color:var(--red);">Error loading friends.</span>'; console.error(e); }
         }
         async function loadLeaderboard() {
             const tbody = document.querySelector('#leaderboard-table tbody');
@@ -623,40 +539,204 @@
                 // fallback client-side sort
                 try {
                     const allUsers = await db.collection('users').get();
-                    const sorted = allUsers.docs.map(d => ({ ...d.data(), id: d.id })).filter(d => typeof d.totalWins === 'number').sort((a,b) => (b.totalWins||0) - (a.totalWins||0)).slice(0,20);
+                    const sorted = allUsers.docs.map(d => ({ ...d.data(), id: d.id }))
+                        .filter(d => typeof d.totalWins === 'number')
+                        .sort((a,b) => (b.totalWins||0) - (a.totalWins||0))
+                        .slice(0,20);
                     tbody.innerHTML = sorted.map((d,i) => `<tr><td>${i+1}</td><td>${d.displayName||'?'}</td><td>${d.totalWins||0}</td></tr>`).join('') || '<tr><td colspan="3">No data.</td></tr>';
-                } catch (e2) {
-                    tbody.innerHTML = '<tr><td colspan="3">Leaderboard unavailable.</td></tr>';
-                }
+                } catch (e2) { tbody.innerHTML = '<tr><td colspan="3">Leaderboard unavailable.</td></tr>'; }
             }
         }
 
         // ---------- PROFILE MODAL (with friend requests) ----------
         async function showProfileModal() {
             if (!currentUser) return;
-            const userDoc = await db.collection('users').doc(currentUser.uid).get();
-            const userData = userDoc.data() || {};
-            const html = `
-              <p><strong>Display Name:</strong> ${userData.displayName || '?'}</p>
-              <p><strong>Username:</strong> ${userData.username || '?'}</p>
-              <p><strong>Email:</strong> ${userData.email || '?'}</p>
-              <p><strong>Coins:</strong> ${userData.coins || 0}</p>
-              <p><strong>Total Wins:</strong> ${userData.totalWins || 0}</p>
-              <p><strong>Total Games Played:</strong> ${userData.totalGames || 0}</p>
+            const d = userScores;
+            let pendingRequests = [];
+            try {
+                const snap = await db.collection('friendships')
+                    .where('participants', 'array-contains', currentUser.uid)
+                    .where('status', '==', 'pending')
+                    .where('sentBy', '!=', currentUser.uid)
+                    .get();
+                pendingRequests = snap.docs;
+            } catch (e) { console.error(e); }
+
+            const requestCount = pendingRequests.length;
+            const profileTabHTML = `
+              <p><strong>Display Name:</strong> ${d.displayName || 'N/A'}</p>
+              <p><strong>Username:</strong> <span id="profile-username">${d.username || 'N/A'}</span></p>
+              <p><strong>Email:</strong> ${d.email || 'N/A'}</p>
+              <p><strong>Coins:</strong> 🪙 ${d.coins || 0}</p>
+              <p><strong>Total Wins:</strong> ${d.totalWins || 0}</p>
+              <p><strong>Total Games:</strong> ${d.totalGames || 0}</p>
+              <button class="btn btn-outline btn-sm" id="copy-username-btn">📋 Copy Username</button>
               <hr>
-              <button class="btn btn-danger" id="btn-delete-account">Delete Account</button>
+              <button class="btn btn-danger btn-sm" id="clear-finished-games-btn">🗑️ Clear My Finished Games</button>
             `;
-            const overlay = showModal('👤 Profile', html);
-            overlay.querySelector('#btn-delete-account').addEventListener('click', async () => {
-                if (confirm('Are you sure you want to delete your account? This cannot be undone.')) {
+            const requestsTabHTML = `
+              <div id="friend-requests-list">
+                ${pendingRequests.length === 0 ? '<p>No pending friend requests.</p>' : ''}
+              </div>
+            `;
+            const html = `
+              <div class="tab-buttons">
+                <button class="tab-btn active" data-tab="profile">Profile</button>
+                <button class="tab-btn" data-tab="requests">Friend Requests ${requestCount > 0 ? `<span style="background:var(--red);border-radius:50%;padding:0 6px;">${requestCount}</span>` : ''}</button>
+              </div>
+              <div id="tab-profile">${profileTabHTML}</div>
+              <div id="tab-requests" style="display:none;">${requestsTabHTML}</div>
+            `;
+            const overlay = showModal('👤 Your Profile', html);
+
+            overlay.querySelector('#copy-username-btn')?.addEventListener('click', () => {
+                navigator.clipboard.writeText(userScores.username || '').then(() => showToast('Username copied!')).catch(() => showToast('Failed'));
+            });
+
+            overlay.querySelector('#clear-finished-games-btn')?.addEventListener('click', async () => {
+                if (!confirm('Delete all your finished games?')) return;
+                try {
+                    const snap = await db.collection('activeGames')
+                        .where('status', '==', 'finished')
+                        .get();
+                    const batch = db.batch();
+                    snap.forEach(doc => {
+                        if (doc.data().participants?.includes(currentUser.uid)) batch.delete(doc.ref);
+                    });
+                    await batch.commit();
+                    showToast('Finished games cleared!');
+                } catch (e) { showToast('Error cleaning games'); console.error(e); }
+            });
+
+            overlay.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    overlay.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    const tab = btn.dataset.tab;
+                    overlay.querySelector('#tab-profile').style.display = tab === 'profile' ? 'block' : 'none';
+                    overlay.querySelector('#tab-requests').style.display = tab === 'requests' ? 'block' : 'none';
+                });
+            });
+
+            if (pendingRequests.length > 0) {
+                const listEl = overlay.querySelector('#friend-requests-list');
+                listEl.innerHTML = '';
+                pendingRequests.forEach(async (reqDoc) => {
+                    const data = reqDoc.data();
+                    const senderUid = data.sentBy;
                     try {
-                        await db.collection('users').doc(currentUser.uid).delete();
-                        await currentUser.delete();
-                        showToast('Account deleted.');
-                        renderAuthScreen();
-                    } catch (e) {
-                        showToast('Error deleting account: ' + e.message);
+                        const senderSnap = await db.collection('users').doc(senderUid).get();
+                        const senderName = senderSnap.exists ? senderSnap.data().displayName : 'Unknown';
+                        const reqHtml = `
+                          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+                            <span>${senderName}</span>
+                            <div>
+                              <button class="btn btn-accent btn-sm accept-req" data-fid="${reqDoc.id}">Accept</button>
+                              <button class="btn btn-outline btn-sm reject-req" data-fid="${reqDoc.id}">Reject</button>
+                            </div>
+                          </div>`;
+                        listEl.insertAdjacentHTML('beforeend', reqHtml);
+                    } catch (e) { console.error(e); }
+                });
+            }
+
+            overlay.querySelector('#tab-requests').addEventListener('click', async (e) => {
+                const btn = e.target.closest('button');
+                if (!btn) return;
+                const fid = btn.dataset.fid;
+                if (!fid) return;
+                if (btn.classList.contains('accept-req')) {
+                    try {
+                        await db.collection('friendships').doc(fid).update({ status: 'accepted' });
+                        showToast('Friend request accepted!');
+                        btn.parentElement.parentElement.remove();
+                        loadFriends();
+                    } catch (err) { showToast('Error accepting request'); console.error(err); }
+                } else if (btn.classList.contains('reject-req')) {
+                    try {
+                        await db.collection('friendships').doc(fid).delete();
+                        btn.parentElement.parentElement.remove();
+                        showToast('Request rejected');
+                    } catch (err) { showToast('Error rejecting request'); console.error(err); }
+                }
+            });
+        }
+
+        // ---------- ADD FRIEND MODAL (search by username or display name) ----------
+        async function showAddFriendModal() {
+            const html = `
+            <p style="font-size:0.85rem;color:var(--text2);">Enter username or display name.</p>
+            <div class="input-group"><input type="text" id="friend-search-input" placeholder="username or display name"></div>
+            <button class="btn btn-accent" style="width:100%;" id="search-friend-btn">Search</button>
+            <div id="search-results" style="margin-top:10px;"></div>`;
+            const overlay = showModal('Add Friend', html);
+            overlay.querySelector('#search-friend-btn').addEventListener('click', async () => {
+                const query = overlay.querySelector('#friend-search-input').value.trim().toLowerCase();
+                const resDiv = overlay.querySelector('#search-results');
+                if (!query) { resDiv.innerHTML = '<span style="color:var(--red);">Enter something.</span>'; return; }
+                resDiv.innerHTML = 'Searching...';
+                try {
+                    let users = [];
+                    const snapUsername = await db.collection('users').where('username', '==', query).limit(1).get();
+                    snapUsername.forEach(doc => users.push(doc));
+                    if (users.length === 0) {
+                        const allUsers = await db.collection('users').get();
+                        allUsers.forEach(doc => {
+                            const data = doc.data();
+                            if (data.displayName && data.displayName.toLowerCase().includes(query)) {
+                                if (!users.find(u => u.id === doc.id)) users.push(doc);
+                            }
+                        });
                     }
+                    if (users.length === 0) {
+                        resDiv.innerHTML = '<span style="color:var(--red);">No user found.</span>';
+                        return;
+                    }
+                    const friendshipsSnap = await db.collection('friendships')
+                        .where('participants', 'array-contains', currentUser.uid)
+                        .get();
+                    const existingFriendUids = new Set();
+                    friendshipsSnap.forEach(doc => {
+                        const data = doc.data();
+                        const other = data.participants.find(u => u !== currentUser.uid);
+                        if (other) existingFriendUids.add(other);
+                    });
+                    resDiv.innerHTML = users.map(user => {
+                        const d = user.data();
+                        const uid = user.id;
+                        const isYou = uid === currentUser.uid;
+                        const alreadyConnected = existingFriendUids.has(uid);
+                        return `<div style="margin:5px 0; display:flex; align-items:center; justify-content:space-between;">
+                          <div><strong>${d.displayName}</strong> (@${d.username}) ${isYou ? '(you)' : ''}</div>
+                          ${!isYou && !alreadyConnected ? `<button class="btn btn-accent btn-sm send-req-btn" data-uid="${uid}">Send Request</button>` : ''}
+                          ${isYou ? '' : (alreadyConnected ? '<span style="color:var(--green);">Already friends/pending</span>' : '')}
+                        </div>`;
+                    }).join('');
+                    resDiv.querySelectorAll('.send-req-btn').forEach(btn => {
+                        btn.addEventListener('click', async () => {
+                            const targetUid = btn.dataset.uid;
+                            btn.disabled = true;
+                            btn.textContent = 'Sending...';
+                            try {
+                                await db.collection('friendships').add({
+                                    participants: [currentUser.uid, targetUid],
+                                    status: 'pending',
+                                    sentBy: currentUser.uid,
+                                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                                });
+                                showToast('Friend request sent!');
+                                btn.textContent = 'Requested';
+                            } catch (e) {
+                                console.error(e);
+                                showToast('Error sending request. Check console.');
+                                btn.disabled = false;
+                                btn.textContent = 'Send Request';
+                            }
+                        });
+                    });
+                } catch (e) {
+                    console.error(e);
+                    resDiv.innerHTML = '<span style="color:var(--red);">Error searching. See console.</span>';
                 }
             });
         }
@@ -684,7 +764,6 @@
                 if (!lbDiv) return;
                 lbDiv.innerHTML = 'Loading leaderboard...';
                 try {
-                    // Try server-side order; fallback to client sort if index missing
                     const snap = await db.collection('users').orderBy(meta.field, 'desc').limit(20).get();
                     let rows = '';
                     snap.forEach((doc, i) => {
@@ -695,7 +774,6 @@
                     });
                     lbDiv.innerHTML = `<table class="leaderboard-table"><thead><tr><th>Rank</th><th>Player</th><th>Wins</th></tr></thead><tbody>${rows || '<tr><td colspan="3">No winners yet.</td></tr>'}</tbody></table>`;
                 } catch (e) {
-                    // client-side sort
                     try {
                         const allUsers = await db.collection('users').get();
                         const sorted = allUsers.docs.map(doc => ({ ...doc.data(), id: doc.id }))
@@ -709,9 +787,7 @@
                             rows += `<tr><td>${rank}</td><td>${d.displayName || '?'}</td><td>${wins}</td></tr>`;
                         });
                         lbDiv.innerHTML = `<table class="leaderboard-table"><thead><tr><th>Rank</th><th>Player</th><th>Wins</th></tr></thead><tbody>${rows || '<tr><td colspan="3">No data.</td></tr>'}</tbody></table>`;
-                    } catch (fallbackErr) {
-                        lbDiv.innerHTML = '<span style="color:var(--red);">Could not load leaderboard.</span>';
-                    }
+                    } catch (e2) { lbDiv.innerHTML = '<span style="color:var(--red);">Could not load leaderboard.</span>'; }
                 }
             };
 
@@ -781,73 +857,8 @@
             }
         }
 
-        // ---------- ADD FRIEND (by display name OR username) ----------
-        async function showAddFriendModal() {
-            const html = `
-            <p style="font-size:0.85rem;color:var(--text2);">Enter username or display name (case‑insensitive for username).</p>
-            <div class="input-group"><input type="text" id="friend-search-input" placeholder="username or display name"></div>
-            <button class="btn btn-accent" style="width:100%;" id="search-friend-btn">Search</button>
-            <div id="search-results" style="margin-top:10px;"></div>`;
-            const overlay = showModal('Add Friend', html);
-            overlay.querySelector('#search-friend-btn').addEventListener('click', async () => {
-                const query = overlay.querySelector('#friend-search-input').value.trim();
-                const resDiv = overlay.querySelector('#search-results');
-                if (!query) { resDiv.textContent = 'Enter something.'; return; }
-                resDiv.innerHTML = 'Searching...';
-                try {
-                    let users = [];
-                    // try exact username
-                    const byUsername = await db.collection('users').where('username', '==', query.toLowerCase()).limit(1).get();
-                    byUsername.forEach(d => users.push(d));
-                    // try display name (case sensitive? Firestore doesn't do partial matches easily, so we'll fetch all and filter)
-                    if (users.length === 0) {
-                        const allUsers = await db.collection('users').get();
-                        allUsers.forEach(doc => {
-                            const data = doc.data();
-                            if (data.displayName && data.displayName.toLowerCase().includes(query.toLowerCase())) {
-                                if (!users.find(u => u.id === doc.id)) users.push(doc);
-                            }
-                        });
-                    }
-                    if (users.length === 0) {
-                        resDiv.innerHTML = '<span style="color:var(--red);">No user found.</span>';
-                        return;
-                    }
-                    resDiv.innerHTML = users.map(user => {
-                        const d = user.data();
-                        const isYou = user.id === currentUser.uid;
-                        const alreadyFriend = friendsList.some(f => f.uid === user.id);
-                        return `<div style="margin:5px 0;">
-                          <strong>${d.displayName}</strong> (@${d.username}) ${isYou ? '(you)' : ''}
-                          ${!isYou && !alreadyFriend ? `<button class="btn btn-accent btn-sm send-req-btn" data-uid="${user.id}">Send Request</button>` : ''}
-                          ${alreadyFriend ? '<span style="color:var(--green);">Already friend</span>' : ''}
-                        </div>`;
-                    }).join('');
-                    // Event listeners for send request buttons
-                    resDiv.querySelectorAll('.send-req-btn').forEach(btn => {
-                        btn.addEventListener('click', async () => {
-                            const targetUid = btn.dataset.uid;
-                            try {
-                                await db.collection('friendships').add({
-                                    participants: [currentUser.uid, targetUid],
-                                    status: 'pending',
-                                    sentBy: currentUser.uid,
-                                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                                });
-                                showToast('Friend request sent!');
-                                btn.disabled = true;
-                                btn.textContent = 'Requested';
-                            } catch (e) { showToast('Error sending request'); console.error(e); }
-                        });
-                    });
-                } catch (e) {
-                    resDiv.innerHTML = '<span style="color:var(--red);">Error searching.</span>';
-                    console.error(e);
-                }
-            });
-        }
-
-        // ---------- MULTIPLAYER INITIATORS (with role assignment fix) ----------
+        // ==================== GAME FUNCTIONS (all 9 games, with role fix) ====================
+        // ---------- TIC-TAC-TOE ----------
         async function initiateXOGame(opponentUid, opponentName) {
             gameData = { type:'xo', board:Array(9).fill(null), currentTurn:'X', mySymbol:'X', opponentSymbol:'O', gameId:null, opponentUid, opponentName, gameOver:false, winner:null };
             const ref = await db.collection('activeGames').add({
@@ -899,7 +910,6 @@
             const unsub = db.collection('activeGames').doc(gameData.gameId).onSnapshot(snap => {
                 if (!snap.exists) { cleanupListeners(); renderDashboard(); return; }
                 const d = snap.data();
-                // Correct role assignment
                 if (currentUser.uid === d.playerX) { gameData.mySymbol = 'X'; gameData.opponentSymbol = 'O'; }
                 else if (currentUser.uid === d.playerO) { gameData.mySymbol = 'O'; gameData.opponentSymbol = 'X'; }
                 gameData.board = d.board; gameData.currentTurn = d.currentTurn;
@@ -910,7 +920,7 @@
             activeListeners.push(unsub);
         }
 
-        // ---------- CONNECT FOUR (similar role fix) ----------
+        // ---------- CONNECT FOUR ----------
         async function initiateConnect4Game(opponentUid, opponentName) {
             gameData = { type:'connect4', board:Array(42).fill(null), currentTurn:'red', myColor:'red', opponentColor:'yellow', gameId:null, opponentUid, opponentName, gameOver:false, winner:null };
             const ref = await db.collection('activeGames').add({
@@ -995,10 +1005,7 @@
             activeListeners.push(unsub);
         }
 
-        // ==================== UNO, CHECKERS, HANGMAN, RPS, MEMORY, SNAKE (unchanged except role fix in listening) ====================
-        // (For brevity, I'll include all game logic below, but you can copy from previous full code and just adjust role assignment similarly)
-        // ...
-        // ----- UNO -----
+        // ---------- UNO ----------
         function createUnoDeck() {
             const colors = ['red','blue','green','yellow'];
             const values = ['0','1','2','3','4','5','6','7','8','9','skip','reverse','draw2'];
@@ -1093,7 +1100,6 @@
             const unsub = db.collection('activeGames').doc(gameData.gameId).onSnapshot(snap => {
                 if (!snap.exists) { cleanupListeners(); renderDashboard(); return; }
                 const d = snap.data();
-                // Role assignment
                 if (currentUser.uid === d.player1) gameData.myPlayerNum = 1;
                 else if (currentUser.uid === d.player2) gameData.myPlayerNum = 2;
                 gameData.player1Hand = d.player1Hand; gameData.player2Hand = d.player2Hand;
@@ -1121,7 +1127,7 @@
             renderUnoScreen(); listenUnoGame();
         }
 
-        // ----- CHECKERS (role fix) -----
+        // ---------- CHECKERS ----------
         function initCheckersBoard() {
             const board = Array(64).fill(null);
             for (let r=0; r<8; r++) for (let c=0; c<8; c++) {
@@ -1227,7 +1233,7 @@
             renderCheckersScreen(); listenCheckersGame();
         }
 
-        // ----- HANGMAN (role fix) -----
+        // ---------- HANGMAN ----------
         function renderHangmanScreen() {
             const main = document.getElementById('main-content');
             const displayWord = gameData.word.split('').map(l => gameData.guessed.includes(l) ? l : '_').join(' ');
@@ -1290,7 +1296,7 @@
             renderHangmanScreen(); listenHangmanGame();
         }
 
-        // ----- RPS (role fix) -----
+        // ---------- RPS ----------
         function renderRPSScreen() {
             const main = document.getElementById('main-content');
             const choices = ['🪨 Rock', '📄 Paper', '✂️ Scissors'];
@@ -1315,7 +1321,6 @@
             const unsub = db.collection('activeGames').doc(gameData.gameId).onSnapshot(snap => {
                 if (!snap.exists) { cleanupListeners(); renderDashboard(); return; }
                 const d = snap.data();
-                // role
                 if (currentUser.uid === d.player1) gameData.myPlayerNum = 1;
                 else if (currentUser.uid === d.player2) gameData.myPlayerNum = 2;
                 if (d.player1Choice!==null && d.player2Choice!==null && !d.result) {
@@ -1347,7 +1352,7 @@
             renderRPSScreen(); listenRPSGame();
         }
 
-        // ==================== MEMORY & SNAKE & NUMBER GUESS (SOLO) ====================
+        // ---------- MEMORY MATCH ----------
         function startMemoryGame() {
             cleanupListeners(); currentScreen='game'; currentGame='memory';
             const emojis = ['🍎','🍊','🍋','🍇','🍓','🍒','🥝','🍑'];
@@ -1382,6 +1387,7 @@
             }
         }
 
+        // ---------- SNAKE ----------
         function startSnakeGame() {
             cleanupListeners(); currentScreen='game'; currentGame='snake';
             gameData = { snake:[{x:8,y:8},{x:7,y:8},{x:6,y:8}], direction:{x:1,y:0}, food:{x:12,y:8}, score:0, gameOver:false, gridSize:20, speed:120, intervalId:null };
@@ -1434,7 +1440,7 @@
             document.removeEventListener('keydown', snakeKeyHandler);
         }
 
-        // --- NUMBER GUESS (new) ---
+        // ---------- NUMBER GUESS ----------
         function startNumberGuessGame() {
             cleanupListeners(); currentScreen='game'; currentGame='numberguess';
             const target = Math.floor(Math.random() * 100) + 1;
@@ -1486,9 +1492,9 @@
             updates[`wins_${gameType}`] = (d[`wins_${gameType}`] || 0) + 1;
             try {
                 await ref.update(updates);
+                userScores.coins = (d.coins || 0) + 25;
+                userScores[`wins_${gameType}`] = updates[`wins_${gameType}`];
             } catch(e) { showToast('Score update error'); console.error(e); }
-            userScores.coins = (d.coins || 0) + 25;
-            userScores[`wins_${gameType}`] = updates[`wins_${gameType}`];
             updateCoinsDisplay();
             showToast(`🏆 You won! +25 coins (${gameType})`);
         }
@@ -1498,13 +1504,13 @@
             const snap = await ref.get(); const d = snap.data() || {};
             try {
                 await ref.update({ coins: (d.coins || 0) + 5, totalGames: (d.totalGames || 0) + 1 });
+                userScores.coins = (d.coins || 0) + 5;
             } catch(e) { console.error(e); }
-            userScores.coins = (d.coins || 0) + 5;
             updateCoinsDisplay();
             showToast('🤝 Draw! +5 coins');
         }
 
-        // ==================== AUTH STATE ====================
+        // ==================== AUTH STATE LISTENER ====================
         auth.onAuthStateChanged(async user => {
             cleanupListeners();
             if (user) {
