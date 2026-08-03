@@ -453,7 +453,7 @@ async function showGameModal(gameType) {
                 const all = await db.collection('users').get();
                 const sorted = all.docs.map(d=>({...d.data()})).filter(d=>typeof d[meta.field]==='number').sort((a,b)=>(b[meta.field]||0)-(a[meta.field]||0)).slice(0,20);
                 let rows = sorted.map((d,i)=><tr><td>${i+1}</td><td>${d.displayName||'?'}</td><td>${d[meta.field]||0}</td></tr>).join('');
-                lbDiv.innerHTML = `<table class="leaderboard-table"><thead><tr><th>Rank</th><th>Player</th><th>Wins</th></tr></thead><tbody>${rows||'<tr><td colspan="3">No data.</td></tr>'}</tbody></table>`;
+                lbDiv.innerHTML = <table class="leaderboard-table"><thead><tr><th>Rank</th><th>Player</th><th>Wins</th></tr></thead><tbody>${rows||'<tr><td colspan="3">No data.</td></tr>'}</tbody></table>`;
             } catch(e2) { lbDiv.innerHTML='Unavailable.'; }
         }
     };
