@@ -88,10 +88,15 @@
         .friend-option { padding:6px; cursor:pointer; border-radius:8px; }
         .friend-option:hover { background:var(--surface2); }
         .friend-option.active { background:var(--accent); color:#fff; }
+        /* Mobile snake controls */
+        #snake-controls { display:none; }
         @media (max-width:600px) {
             #app { margin:10px; }
             #header { flex-direction:column; align-items:flex-start; }
             .games-grid { grid-template-columns: repeat(3, 1fr); }
+            #snake-controls { display:flex; flex-direction:column; align-items:center; gap:5px; margin-top:10px; }
+            .snake-row { display:flex; gap:5px; }
+            .snake-btn { width:50px; height:50px; background:var(--surface2); border:2px solid var(--border); border-radius:10px; font-size:1.5rem; display:flex; align-items:center; justify-content:center; cursor:pointer; }
         }
     </style>
 </head>
@@ -126,8 +131,20 @@
 <div id="toast-container"></div>
 <div id="modal-container"></div>
 
+<!-- Mobile snake controls (hidden on desktop) -->
+<div id="snake-controls">
+    <div class="snake-row">
+        <button class="snake-btn" id="snake-up">⬆️</button>
+    </div>
+    <div class="snake-row">
+        <button class="snake-btn" id="snake-left">⬅️</button>
+        <button class="snake-btn" id="snake-down">⬇️</button>
+        <button class="snake-btn" id="snake-right">➡️</button>
+    </div>
+</div>
+
 <script>
-// ========== FIREBASE CONFIG (NEW PROJECT) ==========
+// ========== FIREBASE CONFIG ==========
 const firebaseConfig = {
     apiKey: "AIzaSyD-_eWSen7haxJ6EMP-4VKC9uti9LKqeDk",
     authDomain: "or-gaming.firebaseapp.com",
@@ -419,7 +436,7 @@ async function showAddFriendModal() {
     });
 }
 
-// ---------- PER GAME MODAL (leaderboard + play) ----------
+// ---------- PER GAME MODAL ----------
 const gameMeta = {
     xo:{name:'Tic-Tac-Toe',field:'wins_xo',icon:'❌⭕'},
     connect4:{name:'Connect Four',field:'wins_connect4',icon:'🔴🟡'},
@@ -452,8 +469,8 @@ async function showGameModal(gameType) {
             try {
                 const all = await db.collection('users').get();
                 const sorted = all.docs.map(d=>({...d.data()})).filter(d=>typeof d[meta.field]==='number').sort((a,b)=>(b[meta.field]||0)-(a[meta.field]||0)).slice(0,20);
-                let rows = sorted.map((d,i)=><tr><td>${i+1}/td><td>${d.displayName||'?'}</td><td>${d[meta.field]||0}</td></tr>).join('');
-                lbDiv.innerHTML = '<table class="leaderboard-table"><thead><tr><th>Rank</th><th>Player</th><th>Wins</th></tr></thead><tbody>${rows||'<tr><td colspan="3">No data.</td></tr>'}</tbody></table>`;
+                let rows = sorted.map((d,i)=>`<tr><td>${i+1}</td><td>${d.displayName||'?'}</td><td>${d[meta.field]||0}</td></tr>`).join('');
+                lbDiv.innerHTML = `<table class="leaderboard-table"><thead><tr><th>Rank</th><th>Player</th><th>Wins</th></tr></thead><tbody>${rows||'<tr><td colspan="3">No data.</td></tr>'}</tbody></table>`;
             } catch(e2) { lbDiv.innerHTML='Unavailable.'; }
         }
     };
@@ -509,7 +526,7 @@ async function showGameModal(gameType) {
 }
 
 // ========== GAME FUNCTIONS (all 9) ==========
-// XO
+// XO (Tic-Tac-Toe)
 async function initiateXOGame(opponentUid, opponentName) {
     gameData = { type:'xo', board:Array(9).fill(null), currentTurn:'X', mySymbol:'X', opponentSymbol:'O', gameId:null, opponentUid, opponentName, gameOver:false, winner:null };
     const ref = await db.collection('activeGames').add({
@@ -634,7 +651,7 @@ function listenConnect4Game(){
     activeListeners.push(unsub);
 }
 
-// UNO (full logic)
+// UNO
 function createUnoDeck(){
     const colors=['red','blue','green','yellow'], values=['0','1','2','3','4','5','6','7','8','9','skip','reverse','draw2'];
     let deck=[];
@@ -742,7 +759,7 @@ async function initiateUnoGame(opponentUid, opponentName){
     renderUnoScreen(); listenUnoGame();
 }
 
-// Checkers
+// Checkers (fixed capture)
 function initCheckersBoard(){
     const board=Array(64).fill(null);
     for(let r=0;r<8;r++) for(let c=0;c<8;c++) if((r+c)%2===1) if(r<3) board[r*8+c]='red'; else if(r>4) board[r*8+c]='black';
@@ -778,29 +795,38 @@ function handleCheckerClick(idx){
         if(piece&&piece===gameData.myColor){gameData.selectedPiece=idx;renderCheckersScreen();}
     } else {
         if(piece===gameData.myColor){gameData.selectedPiece=idx;renderCheckersScreen();}
-        else if(!piece&&isValidCheckerMove(gameData.selectedPiece,idx)){
-            gameData.board[idx]=gameData.board[gameData.selectedPiece];gameData.board[gameData.selectedPiece]=null;
-            gameData.selectedPiece=null;
-            const oppColor=gameData.myColor==='black'?'red':'black';
-            if(!gameData.board.includes(oppColor)){gameData.gameOver=true;gameData.winner=gameData.myColor;}
-            else gameData.currentPlayer=oppColor;
-            updateCheckersFirestore();renderCheckersScreen();
-            if(gameData.winner===gameData.myColor) awardWin('checkers');
+        else if(!piece){
+            const validMove = isValidCheckerMove(gameData.selectedPiece, idx);
+            if(validMove){
+                // Move and remove captured piece (capture already handled inside isValidCheckerMove)
+                gameData.board[idx]=gameData.board[gameData.selectedPiece];
+                gameData.board[gameData.selectedPiece]=null;
+                gameData.selectedPiece=null;
+                const oppColor=gameData.myColor==='black'?'red':'black';
+                if(!gameData.board.includes(oppColor)){gameData.gameOver=true;gameData.winner=gameData.myColor;}
+                else gameData.currentPlayer=oppColor;
+                updateCheckersFirestore();renderCheckersScreen();
+                if(gameData.winner===gameData.myColor) awardWin('checkers');
+            } else showToast('Invalid move');
         } else showToast('Invalid move');
     }
 }
-function isValidCheckerMove(fromIdx,toIdx){
+function isValidCheckerMove(fromIdx, toIdx){
     const board=gameData.board;
     const fromRow=Math.floor(fromIdx/8),fromCol=fromIdx%8, toRow=Math.floor(toIdx/8),toCol=toIdx%8;
     const piece=board[fromIdx];
     if(!piece||board[toIdx]) return false;
     const rowDiff=toRow-fromRow, colDiff=Math.abs(toCol-fromCol);
-    if(piece==='black'&&rowDiff>0) return false;
-    if(piece==='red'&&rowDiff<0) return false;
-    if(Math.abs(rowDiff)===1&&colDiff===1) return true;
+    if(piece==='black'&&rowDiff>0) return false;   // black moves upward
+    if(piece==='red'&&rowDiff<0) return false;     // red moves downward
+    if(Math.abs(rowDiff)===1&&colDiff===1) return true; // simple move
     if(Math.abs(rowDiff)===2&&colDiff===2){
         const midRow=(fromRow+toRow)/2, midCol=(fromCol+toCol)/2, midIdx=midRow*8+midCol;
-        if(board[midIdx]&&board[midIdx]!==piece){board[midIdx]=null;return true;}
+        if(board[midIdx]&&board[midIdx]!==piece){
+            // Capture: remove the middle piece
+            board[midIdx]=null;
+            return true;
+        }
     }
     return false;
 }
@@ -872,7 +898,7 @@ function listenHangmanGame(){
     activeListeners.push(unsub);
 }
 
-// RPS
+// RPS (Rock Paper Scissors)
 async function initiateRPSGame(opponentUid, opponentName){
     gameData={type:'rps',myChoice:null,opponentChoice:null,result:null,gameId:null,opponentUid,opponentName,myPlayerNum:1};
     const ref=await db.collection('activeGames').add({
@@ -918,7 +944,7 @@ function listenRPSGame(){
     activeListeners.push(unsub);
 }
 
-// Memory
+// Memory Match
 function startMemoryGame(){
     cleanupListeners();currentScreen='game';currentGame='memory';
     const emojis=['🍎','🍊','🍋','🍇','🍓','🍒','🥝','🍑'];
@@ -948,7 +974,7 @@ function memoryClick(idx){
     }
 }
 
-// Snake
+// Snake (with mobile controls)
 function startSnakeGame(){
     cleanupListeners();currentScreen='game';currentGame='snake';
     gameData={snake:[{x:8,y:8},{x:7,y:8},{x:6,y:8}],direction:{x:1,y:0},food:{x:12,y:8},score:0,gameOver:false,gridSize:20,speed:120,intervalId:null};
@@ -956,8 +982,11 @@ function startSnakeGame(){
 }
 function renderSnakeScreen(){
     const main=document.getElementById('main-content');
+    const controlsDiv = document.getElementById('snake-controls');
+    if(controlsDiv) controlsDiv.style.display = (window.innerWidth <= 600) ? 'flex' : 'none';
     main.innerHTML=`<div class="game-screen"><button class="btn btn-outline btn-sm" onclick="stopSnakeLoop();cleanupListeners();renderDashboard();">← Back</button><h2>🐍 Snake</h2><p>Score: ${gameData.score}</p><canvas id="snake-canvas" width="400" height="400" style="border:2px solid var(--border);border-radius:10px;"></canvas>${gameData.gameOver?`<span>Game Over! Score: ${gameData.score}</span><button class="btn btn-accent" onclick="cleanupListeners();renderDashboard();">Dashboard</button>`:''}</div>`;
     drawSnake();
+    setupSnakeControls();
 }
 function drawSnake(){
     const canvas=document.getElementById('snake-canvas');if(!canvas)return;
@@ -993,6 +1022,30 @@ function snakeKeyHandler(e){
 function stopSnakeLoop(){
     if(gameData.intervalId){clearInterval(gameData.intervalId);gameData.intervalId=null;}
     document.removeEventListener('keydown',snakeKeyHandler);
+    const controlsDiv = document.getElementById('snake-controls');
+    if(controlsDiv) controlsDiv.style.display = 'none';
+}
+function setupSnakeControls(){
+    // Mobile controls
+    const upBtn = document.getElementById('snake-up');
+    const downBtn = document.getElementById('snake-down');
+    const leftBtn = document.getElementById('snake-left');
+    const rightBtn = document.getElementById('snake-right');
+    const setDir = (x,y) => {
+        if(currentGame!=='snake'||gameData.gameOver) return;
+        if(x===-gameData.direction.x && y===-gameData.direction.y) return;
+        gameData.direction={x,y};
+    };
+    const attach = (btn, x, y) => {
+        if(btn) {
+            btn.addEventListener('touchstart', (e) => { e.preventDefault(); setDir(x,y); });
+            btn.addEventListener('click', () => setDir(x,y));
+        }
+    };
+    attach(upBtn, 0, -1);
+    attach(downBtn, 0, 1);
+    attach(leftBtn, -1, 0);
+    attach(rightBtn, 1, 0);
 }
 
 // Number Guess
