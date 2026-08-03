@@ -4,741 +4,1109 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>CrossPlay Arcade - 9 Games Hub</title>
-
-    <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
     <style>
         :root {
-            --bg: #0a0a1a;
-            --surface: #12122a;
-            --surface2: #1a1a3a;
-            --accent: #6c5ce7;
-            --accent2: #a29bfe;
-            --gold: #f9ca24;
-            --green: #00d2a0;
-            --red: #ff6b6b;
-            --text: #e0e0f0;
-            --text2: #a0a0c0;
-            --border: #2a2a4a;
-            --radius: 14px;
-            --chat-width: 320px;
+            --bg: #0a0a1a; --surface: #12122a; --surface2: #1a1a3a;
+            --accent: #6c5ce7; --accent2: #a29bfe; --gold: #f9ca24;
+            --green: #00d2a0; --red: #ff6b6b; --text: #e0e0f0;
+            --text2: #a0a0c0; --border: #2a2a4a; --radius: 14px;
         }
         * { margin:0; padding:0; box-sizing:border-box; }
         body {
             font-family: 'Segoe UI', system-ui, sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background-image:
-                radial-gradient(ellipse at 20% 20%, rgba(108,92,231,0.12) 0%, transparent 60%),
-                radial-gradient(ellipse at 80% 70%, rgba(0,210,160,0.1) 0%, transparent 60%);
+            background: var(--bg); color: var(--text);
+            min-height: 100vh; display: flex; align-items: center; justify-content: center;
+            background-image: radial-gradient(ellipse at 20% 20%, rgba(108,92,231,0.12) 0%, transparent 60%),
+                            radial-gradient(ellipse at 80% 70%, rgba(0,210,160,0.1) 0%, transparent 60%);
             overflow-x: hidden;
         }
         #app {
-            width: 100%;
-            max-width: 960px;
-            min-height: 92vh;
-            margin: 20px;
-            background: var(--surface);
-            border-radius: 20px;
+            width: 100%; max-width: 960px; min-height: 92vh; margin: 20px;
+            background: var(--surface); border-radius: 20px;
             box-shadow: 0 0 30px rgba(108,92,231,0.25), inset 0 0 15px rgba(255,255,255,0.03);
-            border: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            position: relative;
+            border: 1px solid var(--border); display: flex; flex-direction: column; position: relative;
         }
         #header {
-            background: var(--surface2);
-            padding: 12px 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid var(--border);
-            flex-wrap: wrap;
-            gap: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            background: var(--surface2); padding: 12px 16px; display: flex;
+            align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border);
+            flex-wrap: wrap; gap: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         }
-        .logo {
-            font-size: 1.5rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, #c084fc, var(--accent));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.8rem;
-            color: var(--text2);
-        }
-        .user-info strong { color:#fff; font-weight:600; }
-        .coins {
-            background: #2a1f0a;
-            color: var(--gold);
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-weight: 700;
-            border: 1px solid #4a3a10;
-            box-shadow: 0 0 10px rgba(249,202,36,0.4);
-        }
-        .btn {
-            padding: 8px 14px;
-            border-radius: 25px;
-            border: none;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.8rem;
-            transition: all 0.25s;
-            font-family: inherit;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .btn-accent { background: var(--accent); color: #fff; box-shadow: 0 0 15px rgba(108,92,231,0.4); }
-        .btn-outline { background: transparent; border: 2px solid var(--border); color: var(--text); }
+        .logo { font-size:1.5rem; font-weight:800; background:linear-gradient(135deg,#c084fc,var(--accent)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+        .user-info { display:flex; align-items:center; gap:8px; font-size:0.8rem; color:var(--text2); }
+        .user-info strong { color:#fff; }
+        .coins { background:#2a1f0a; color:var(--gold); padding:4px 10px; border-radius:20px; font-weight:700; border:1px solid #4a3a10; box-shadow:0 0 10px rgba(249,202,36,0.4); }
+        .btn { padding:8px 14px; border-radius:25px; border:none; cursor:pointer; font-weight:600; font-size:0.8rem; transition:all 0.25s; text-transform:uppercase; letter-spacing:0.5px; }
+        .btn-accent { background:var(--accent); color:#fff; }
+        .btn-outline { background:transparent; border:2px solid var(--border); color:var(--text); }
         .btn-sm { padding:4px 12px; font-size:0.7rem; }
-        #main-content {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 16px;
-            -webkit-overflow-scrolling: touch;
-        }
-        /* Game Cards Grid */
-        .games-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-            gap: 10px;
-        }
-        .game-card {
-            background: var(--surface2);
-            border-radius: var(--radius);
-            padding: 14px 8px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            border: 2px solid transparent;
-        }
-        .game-card:active { transform: scale(0.97); }
-        .game-card .icon { font-size: 2rem; margin-bottom: 4px; }
-        .game-card .name { font-weight: 700; font-size: 0.85rem; color: #fff; }
-        .mode-tag {
-            font-size: 0.6rem; padding: 2px 6px; border-radius: 8px;
-            display: inline-block; margin-top: 3px; font-weight: 600;
-        }
-        .tag-multi { background: rgba(108,92,231,0.2); color: var(--accent2); }
-        .tag-solo { background: rgba(0,210,160,0.15); color: var(--green); }
-        .friends-row {
-            display: flex; flex-wrap: wrap; gap: 8px;
-        }
-        .friend-chip {
-            background: var(--surface2); border: 1px solid var(--border);
-            border-radius: 20px; padding: 6px 12px;
-            display: flex; align-items: center; gap: 6px; font-size: 0.8rem;
-        }
-        .dot { width: 8px; height: 8px; border-radius: 50%; background: #666; }
-        .dot.online { background: var(--green); box-shadow: 0 0 10px var(--green); }
-        .leaderboard-table {
-            width: 100%; border-collapse: collapse; font-size: 0.8rem;
-        }
-        .leaderboard-table th, .leaderboard-table td {
-            padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--border);
-        }
-        .game-screen {
-            display: flex; flex-direction: column; align-items: center; gap: 14px; width: 100%;
-        }
+        .btn-danger { background:var(--red); color:#fff; }
+        #main-content { flex:1; padding:20px; overflow-y:auto; display:flex; flex-direction:column; gap:16px; }
+        .games-grid { display:grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap:10px; }
+        .game-card { background:var(--surface2); border-radius:var(--radius); padding:14px 8px; text-align:center; cursor:pointer; transition:all 0.3s; border:2px solid transparent; }
+        .game-card:active { transform:scale(0.97); }
+        .game-card .icon { font-size:2rem; margin-bottom:4px; }
+        .game-card .name { font-weight:700; font-size:0.85rem; color:#fff; }
+        .mode-tag { font-size:0.6rem; padding:2px 6px; border-radius:8px; display:inline-block; margin-top:3px; font-weight:600; }
+        .tag-multi { background:rgba(108,92,231,0.2); color:var(--accent2); }
+        .tag-solo { background:rgba(0,210,160,0.15); color:var(--green); }
+        .friends-row { display:flex; flex-wrap:wrap; gap:8px; }
+        .friend-chip { background:var(--surface2); border:1px solid var(--border); border-radius:20px; padding:6px 12px; display:flex; align-items:center; gap:6px; font-size:0.8rem; }
+        .dot { width:8px; height:8px; border-radius:50%; background:#666; }
+        .dot.online { background:var(--green); box-shadow:0 0 10px var(--green); }
+        .leaderboard-table { width:100%; border-collapse:collapse; font-size:0.8rem; }
+        .leaderboard-table th,.leaderboard-table td { padding:8px 10px; text-align:left; border-bottom:1px solid var(--border); }
+        .game-screen { display:flex; flex-direction:column; align-items:center; gap:14px; width:100%; }
+        .xo-board,.connect4-board { display:grid; gap:4px; }
+        .xo-board { grid-template-columns: repeat(3, 1fr); max-width:280px; }
+        .xo-cell { aspect-ratio:1; background:var(--surface2); border:2px solid var(--border); border-radius:10px; font-size:2.5rem; font-weight:800; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+        .connect4-board { grid-template-columns: repeat(7, 1fr); max-width:420px; }
+        .c4-cell { aspect-ratio:1; background:var(--surface2); border:2px solid var(--border); border-radius:50%; cursor:pointer; }
+        .c4-cell.red { background:#ff6b6b; box-shadow:0 0 15px #ff6b6b; }
+        .c4-cell.yellow { background:#f9ca24; box-shadow:0 0 15px #f9ca24; }
+        .uno-card { width:55px; height:85px; border-radius:8px; border:2px solid #fff; font-weight:700; font-size:1.1rem; display:flex; align-items:center; justify-content:center; color:#fff; margin:4px; cursor:pointer; transition:0.2s; }
+        .uno-card:hover { transform:translateY(-8px); }
+        .checkerboard { display:grid; grid-template-columns: repeat(8, 40px); gap:0; border:2px solid var(--border); }
+        .checker-cell { width:40px; height:40px; display:flex; align-items:center; justify-content:center; font-size:1.5rem; cursor:pointer; }
+        .checker-cell.light { background:#d2b48c; } .checker-cell.dark { background:#8b4513; }
+        .checker-cell.selected { box-shadow:inset 0 0 0 3px var(--accent); }
         /* Chat Widget */
-        #chat-widget {
-            position: fixed;
-            bottom: 20px; right: 20px;
-            z-index: 300;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            max-width: calc(100vw - 40px);
-        }
-        #chat-toggle {
-            width: 50px; height: 50px;
-            border-radius: 50%;
-            background: var(--accent);
-            box-shadow: 0 0 15px rgba(108,92,231,0.6);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.5rem;
-            cursor: pointer;
-            border: none;
-            color: #fff;
-            transition: 0.2s;
-        }
-        #chat-panel {
-            display: none;
-            width: var(--chat-width);
-            max-width: 100%;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            box-shadow: 0 0 20px rgba(108,92,231,0.5);
-            margin-bottom: 10px;
-            overflow: hidden;
-            flex-direction: column;
-            max-height: 400px;
-        }
-        #chat-panel.active {
-            display: flex;
-        }
-        .chat-header {
-            background: var(--surface2);
-            padding: 10px;
-            font-weight: 700;
-            text-align: center;
-            border-bottom: 1px solid var(--border);
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 10px;
-            display: flex; flex-direction: column; gap: 6px;
-            max-height: 250px;
-            -webkit-overflow-scrolling: touch;
-        }
-        .chat-message {
-            max-width: 80%;
-            padding: 6px 10px;
-            border-radius: 12px;
-            font-size: 0.8rem;
-            word-wrap: break-word;
-        }
-        .chat-message.mine {
-            background: var(--accent);
-            align-self: flex-end;
-            color: #fff;
-        }
-        .chat-message.other {
-            background: var(--surface2);
-            align-self: flex-start;
-        }
-        .chat-input-area {
-            display: flex; padding: 8px; gap: 6px;
-            border-top: 1px solid var(--border);
-        }
-        .chat-input-area input {
-            flex:1; padding: 8px; border-radius: 20px;
-            border: 1px solid var(--border);
-            background: var(--surface2); color: var(--text);
-        }
-        .friend-select {
-            padding: 8px;
-            border-bottom: 1px solid var(--border);
-            font-size: 0.8rem;
-            max-height: 120px;
-            overflow-y: auto;
-        }
-        .friend-option {
-            padding: 6px; cursor: pointer; border-radius: 8px;
-        }
-        .friend-option:hover { background: var(--surface2); }
-        .friend-option.active { background: var(--accent); color: #fff; }
-        /* Responsive */
-        @media (max-width: 600px) {
-            #app { margin: 10px; }
-            #header { flex-direction: column; align-items: flex-start; }
+        #chat-widget { position:fixed; bottom:20px; right:20px; z-index:300; display:flex; flex-direction:column; align-items:flex-end; max-width:calc(100vw - 40px); }
+        #chat-toggle { width:50px; height:50px; border-radius:50%; background:var(--accent); box-shadow:0 0 15px rgba(108,92,231,0.6); display:flex; align-items:center; justify-content:center; font-size:1.5rem; cursor:pointer; border:none; color:#fff; }
+        #chat-panel { display:none; width:320px; max-width:100%; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); box-shadow:0 0 20px rgba(108,92,231,0.5); margin-bottom:10px; overflow:hidden; flex-direction:column; max-height:400px; }
+        #chat-panel.active { display:flex; }
+        .chat-header { background:var(--surface2); padding:10px; font-weight:700; text-align:center; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; }
+        .chat-messages { flex:1; overflow-y:auto; padding:10px; display:flex; flex-direction:column; gap:6px; max-height:250px; }
+        .chat-message { max-width:80%; padding:6px 10px; border-radius:12px; font-size:0.8rem; word-wrap:break-word; }
+        .chat-message.mine { background:var(--accent); align-self:flex-end; }
+        .chat-message.other { background:var(--surface2); align-self:flex-start; }
+        .chat-input-area { display:flex; padding:8px; gap:6px; border-top:1px solid var(--border); }
+        .chat-input-area input { flex:1; padding:8px; border-radius:20px; border:1px solid var(--border); background:var(--surface2); color:var(--text); }
+        .friend-select { padding:8px; border-bottom:1px solid var(--border); max-height:120px; overflow-y:auto; }
+        .friend-option { padding:6px; cursor:pointer; border-radius:8px; }
+        .friend-option:hover { background:var(--surface2); }
+        .friend-option.active { background:var(--accent); color:#fff; }
+        @media (max-width:600px) {
+            #app { margin:10px; }
+            #header { flex-direction:column; align-items:flex-start; }
             .games-grid { grid-template-columns: repeat(3, 1fr); }
-            #chat-widget { right: 10px; bottom: 10px; }
-            #chat-panel { width: 100%; }
-            .modal { max-width: 95%; }
         }
     </style>
 </head>
 <body>
-    <div id="app">
-        <div id="header" style="display:none;">
-            <span class="logo">🎮 CrossPlay Arcade</span>
-            <div class="user-info">
-                <span class="coins" id="coins-display">🪙 0</span>
-                <span>👤 <strong id="display-name">User</strong></span>
-                <button class="btn btn-outline btn-sm" onclick="showProfileModal()">👤 Profile</button>
-                <button class="btn btn-outline btn-sm" onclick="handleLogout()">Logout</button>
-            </div>
+<div id="app">
+    <div id="header" style="display:none;">
+        <span class="logo">🎮 CrossPlay Arcade</span>
+        <div class="user-info">
+            <span class="coins" id="coins-display">🪙 0</span>
+            <span>👤 <strong id="display-name">User</strong></span>
+            <button class="btn btn-outline btn-sm" onclick="showProfileModal()">👤 Profile</button>
+            <button class="btn btn-outline btn-sm" onclick="handleLogout()">Logout</button>
         </div>
-        <div id="main-content"></div>
     </div>
+    <div id="main-content"></div>
+</div>
 
-    <!-- Chat Widget -->
-    <div id="chat-widget">
-        <div id="chat-panel">
-            <div class="chat-header">
-                <span>💬 Chat</span>
-                <button class="btn btn-sm btn-outline" id="chat-close" style="border:none;padding:4px 8px;">✕</button>
-            </div>
-            <div class="friend-select" id="chat-friend-list"></div>
-            <div class="chat-messages" id="chat-messages"></div>
-            <div class="chat-input-area">
-                <input type="text" id="chat-input" placeholder="Type a message..." />
-                <button class="btn btn-accent btn-sm" id="chat-send">Send</button>
-            </div>
+<!-- Chat Widget -->
+<div id="chat-widget">
+    <div id="chat-panel">
+        <div class="chat-header"><span>💬 Chat</span><button class="btn btn-sm btn-outline" id="chat-close">✕</button></div>
+        <div class="friend-select" id="chat-friend-list"></div>
+        <div class="chat-messages" id="chat-messages"></div>
+        <div class="chat-input-area">
+            <input type="text" id="chat-input" placeholder="Type a message..." />
+            <button class="btn btn-accent btn-sm" id="chat-send">Send</button>
         </div>
-        <button id="chat-toggle">💬</button>
     </div>
+    <button id="chat-toggle">💬</button>
+</div>
 
-    <div id="toast-container"></div>
-    <div id="modal-container"></div>
+<div id="toast-container"></div>
+<div id="modal-container"></div>
 
-    <script>
-        // ==================== FIREBASE CONFIG (NEW PROJECT) ====================
-        const firebaseConfig = {
-            apiKey: "AIzaSyD-_eWSen7haxJ6EMP-4VKC9uti9LKqeDk",
-            authDomain: "or-gaming.firebaseapp.com",
-            projectId: "or-gaming",
-            storageBucket: "or-gaming.firebasestorage.app",
-            messagingSenderId: "864068290420",
-            appId: "1:864068290420:web:5de450f95d60f3f37e0e21",
-            measurementId: "G-80JRV3R24B"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
-        db.enablePersistence().catch(e => console.warn('Offline persistence error:', e));
+<script>
+// ========== FIREBASE CONFIG (NEW PROJECT) ==========
+const firebaseConfig = {
+    apiKey: "AIzaSyD-_eWSen7haxJ6EMP-4VKC9uti9LKqeDk",
+    authDomain: "or-gaming.firebaseapp.com",
+    projectId: "or-gaming",
+    storageBucket: "or-gaming.firebasestorage.app",
+    messagingSenderId: "864068290420",
+    appId: "1:864068290420:web:5de450f95d60f3f37e0e21",
+    measurementId: "G-80JRV3R24B"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+db.enablePersistence().catch(e => console.warn('Offline persistence:', e));
 
-        let currentUser = null;
-        let currentScreen = 'auth';
-        let currentGame = null;
-        let gameData = {};
-        let friendsList = [];
-        let userScores = {};
-        let activeListeners = [];
-        let chatUnsubscribe = null;
-        let currentChatFriend = null;
+let currentUser = null;
+let currentScreen = 'auth';
+let currentGame = null;
+let gameData = {};
+let friendsList = [];
+let userScores = {};
+let activeListeners = [];
+let chatUnsubscribe = null;
+let currentChatFriend = null;
 
-        // ---------- UTILS ----------
-        function showToast(msg, duration=2500) {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--surface2);color:#fff;padding:10px 20px;border-radius:25px;border:1px solid var(--border);z-index:400;font-weight:600;box-shadow:0 0 15px rgba(108,92,231,0.5);animation:fadeInUp 0.3s;';
-            toast.textContent = msg;
-            container.appendChild(toast);
-            setTimeout(() => toast.remove(), duration);
+// ---------- UTILS ----------
+function showToast(msg, duration=2500) {
+    const c = document.getElementById('toast-container');
+    const t = document.createElement('div');
+    t.style.cssText = 'position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--surface2);color:#fff;padding:10px 20px;border-radius:25px;border:1px solid var(--border);z-index:400;font-weight:600;box-shadow:0 0 15px rgba(108,92,231,0.5);animation:fadeInUp 0.3s;';
+    t.textContent = msg;
+    c.appendChild(t);
+    setTimeout(() => t.remove(), duration);
+}
+function showModal(title, html, onClose) {
+    const container = document.getElementById('modal-container');
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:200;display:flex;align-items:center;justify-content:center;';
+    overlay.innerHTML = `<div style="background:var(--surface);border-radius:14px;padding:20px;max-width:400px;width:90%;border:1px solid var(--border);box-shadow:0 0 30px rgba(108,92,231,0.6);max-height:80vh;overflow-y:auto;">
+        <button class="close-btn" style="float:right;background:none;border:none;font-size:1.5rem;color:var(--text2);cursor:pointer;">&times;</button>
+        <h3 style="margin-bottom:12px;">${title}</h3><div>${html}</div></div>`;
+    container.appendChild(overlay);
+    overlay.querySelector('.close-btn').addEventListener('click', () => { overlay.remove(); if(onClose) onClose(); });
+    overlay.addEventListener('click', e => { if(e.target === overlay) { overlay.remove(); if(onClose) onClose(); } });
+    return overlay;
+}
+function cleanupListeners() { activeListeners.forEach(u => { try{u();}catch(e){} }); activeListeners = []; }
+
+// ---------- AUTH ----------
+function renderAuthScreen(isRegister=false) {
+    cleanupListeners(); currentScreen='auth'; document.getElementById('header').style.display='none';
+    document.getElementById('main-content').innerHTML = `
+    <div style="max-width:400px;margin:auto;text-align:center;">
+      <h2 style="font-size:2rem;background:linear-gradient(135deg,#c084fc,var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">🎮 CrossPlay Arcade</h2>
+      <p style="color:var(--text2);margin-bottom:20px;">Multiplayer games with friends</p>
+      <div id="auth-error" style="color:var(--red);margin-bottom:12px;display:none;"></div>
+      <div style="margin-bottom:12px;text-align:left;"><label style="display:block;font-size:0.8rem;color:var(--text2);">Email</label><input type="email" id="auth-email" style="width:100%;padding:10px;border-radius:10px;border:2px solid var(--border);background:var(--surface2);color:var(--text);"></div>
+      <div style="margin-bottom:12px;text-align:left;"><label style="display:block;font-size:0.8rem;color:var(--text2);">Password</label><input type="password" id="auth-password" style="width:100%;padding:10px;border-radius:10px;border:2px solid var(--border);background:var(--surface2);color:var(--text);"></div>
+      ${isRegister ? `
+        <div style="margin-bottom:12px;text-align:left;"><label style="display:block;font-size:0.8rem;color:var(--text2);">Display Name</label><input type="text" id="auth-name" style="width:100%;padding:10px;border-radius:10px;border:2px solid var(--border);background:var(--surface2);color:var(--text);"></div>
+        <div style="margin-bottom:12px;text-align:left;"><label style="display:block;font-size:0.8rem;color:var(--text2);">Username (no spaces)</label><input type="text" id="auth-username" style="width:100%;padding:10px;border-radius:10px;border:2px solid var(--border);background:var(--surface2);color:var(--text);"></div>
+      ` : ''}
+      <button class="btn btn-accent" style="width:100%;padding:12px;font-size:1rem;" id="auth-submit">${isRegister?'Create Account':'Login'}</button>
+      <p style="margin-top:14px;color:var(--text2);">${isRegister ? 'Already have an account? <span id="toggle-auth" style="color:var(--accent2);cursor:pointer;">Login</span>' : 'New here? <span id="toggle-auth" style="color:var(--accent2);cursor:pointer;">Create Account</span>'}</p>
+    </div>`;
+    document.getElementById('auth-submit').addEventListener('click', () => handleAuth(isRegister));
+    document.getElementById('toggle-auth').addEventListener('click', () => renderAuthScreen(!isRegister));
+}
+async function handleAuth(isRegister) {
+    const email = document.getElementById('auth-email').value.trim();
+    const password = document.getElementById('auth-password').value;
+    const name = isRegister ? document.getElementById('auth-name')?.value.trim() : '';
+    const username = isRegister ? document.getElementById('auth-username')?.value.trim().toLowerCase() : '';
+    const errEl = document.getElementById('auth-error');
+    errEl.style.display = 'none';
+    if(!email || !password) { errEl.textContent='Fill all fields.'; errEl.style.display='block'; return; }
+    if(password.length<6) { errEl.textContent='Password min 6 characters.'; errEl.style.display='block'; return; }
+    if(isRegister && !name) { errEl.textContent='Enter a display name.'; errEl.style.display='block'; return; }
+    if(isRegister && (!username || username.includes(' ') || username.length<3)) {
+        errEl.textContent='Username min 3 chars, no spaces.'; errEl.style.display='block'; return;
+    }
+    try {
+        if(isRegister) {
+            const uqSnap = await db.collection('users').where('username','==',username).limit(1).get();
+            if(!uqSnap.empty) { errEl.textContent='Username already taken.'; errEl.style.display='block'; return; }
+            const cred = await auth.createUserWithEmailAndPassword(email, password);
+            await db.collection('users').doc(cred.user.uid).set({
+                displayName:name, username, email, coins:100, totalWins:0, totalGames:0,
+                createdAt:firebase.firestore.FieldValue.serverTimestamp(),
+                lastOnline:firebase.firestore.FieldValue.serverTimestamp(),
+                wins_xo:0, wins_connect4:0, wins_uno:0, wins_checkers:0, wins_hangman:0,
+                wins_rps:0, wins_memory:0, wins_snake:0, wins_numberguess:0
+            });
+            await cred.user.updateProfile({displayName:name});
+        } else {
+            await auth.signInWithEmailAndPassword(email, password);
         }
-        function showModal(title, html, onClose) {
-            const container = document.getElementById('modal-container');
-            const overlay = document.createElement('div');
-            overlay.className = 'modal-overlay';
-            overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:200;display:flex;align-items:center;justify-content:center;';
-            overlay.innerHTML = `<div class="modal" style="background:var(--surface);border-radius:14px;padding:20px;max-width:400px;width:90%;border:1px solid var(--border);box-shadow:0 0 30px rgba(108,92,231,0.6);max-height:80vh;overflow-y:auto;">
-                <button class="close-btn" style="float:right;background:none;border:none;font-size:1.5rem;color:var(--text2);cursor:pointer;">&times;</button>
-                <h3 style="margin-bottom:12px;">${title}</h3><div>${html}</div>
-            </div>`;
-            container.appendChild(overlay);
-            overlay.querySelector('.close-btn').addEventListener('click', () => { overlay.remove(); if(onClose) onClose(); });
-            overlay.addEventListener('click', e => { if(e.target === overlay) { overlay.remove(); if(onClose) onClose(); } });
-            return overlay;
-        }
-        function cleanupListeners() { activeListeners.forEach(u => { try{u();}catch(e){} }); activeListeners = []; }
+    } catch(e) {
+        errEl.textContent = e.message.replace('Firebase: ','').replace(/\(auth\/.*\)/,'');
+        errEl.style.display='block';
+    }
+}
+function handleLogout() { cleanupListeners(); auth.signOut(); currentUser=null; renderAuthScreen(); }
 
-        // ---------- AUTH ----------
-        function renderAuthScreen(isRegister=false) {
-            cleanupListeners(); currentScreen='auth'; document.getElementById('header').style.display='none';
-            document.getElementById('main-content').innerHTML = `
-            <div style="max-width:400px;margin:auto;text-align:center;">
-              <h2 style="font-size:2rem;margin-bottom:8px;background:linear-gradient(135deg,#c084fc,var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">🎮 CrossPlay Arcade</h2>
-              <p style="color:var(--text2);margin-bottom:20px;">Multiplayer games with friends</p>
-              <div id="auth-error" style="color:var(--red);margin-bottom:12px;display:none;"></div>
-              <div style="margin-bottom:12px;text-align:left;"><label style="display:block;font-size:0.8rem;color:var(--text2);">Email</label><input type="email" id="auth-email" style="width:100%;padding:10px;border-radius:10px;border:2px solid var(--border);background:var(--surface2);color:var(--text);" placeholder="you@email.com"></div>
-              <div style="margin-bottom:12px;text-align:left;"><label style="display:block;font-size:0.8rem;color:var(--text2);">Password</label><input type="password" id="auth-password" style="width:100%;padding:10px;border-radius:10px;border:2px solid var(--border);background:var(--surface2);color:var(--text);" placeholder="Min 6 characters"></div>
-              ${isRegister ? `
-                <div style="margin-bottom:12px;text-align:left;"><label style="display:block;font-size:0.8rem;color:var(--text2);">Display Name</label><input type="text" id="auth-name" style="width:100%;padding:10px;border-radius:10px;border:2px solid var(--border);background:var(--surface2);color:var(--text);" placeholder="Your display name"></div>
-                <div style="margin-bottom:12px;text-align:left;"><label style="display:block;font-size:0.8rem;color:var(--text2);">Username (no spaces)</label><input type="text" id="auth-username" style="width:100%;padding:10px;border-radius:10px;border:2px solid var(--border);background:var(--surface2);color:var(--text);" placeholder="Unique username"></div>
-              ` : ''}
-              <button class="btn btn-accent" style="width:100%;padding:12px;font-size:1rem;" id="auth-submit">${isRegister?'Create Account':'Login'}</button>
-              <p style="margin-top:14px;color:var(--text2);">${isRegister ? 'Already have an account? <span id="toggle-auth" style="color:var(--accent2);cursor:pointer;">Login</span>' : 'New here? <span id="toggle-auth" style="color:var(--accent2);cursor:pointer;">Create Account</span>'}</p>
-            </div>`;
-            document.getElementById('auth-submit').addEventListener('click', () => handleAuth(isRegister));
-            document.getElementById('toggle-auth').addEventListener('click', () => renderAuthScreen(!isRegister));
-        }
-        async function handleAuth(isRegister) {
-            const email = document.getElementById('auth-email').value.trim();
-            const password = document.getElementById('auth-password').value;
-            const name = isRegister ? document.getElementById('auth-name')?.value.trim() : '';
-            const username = isRegister ? document.getElementById('auth-username')?.value.trim().toLowerCase() : '';
-            const errEl = document.getElementById('auth-error');
-            errEl.style.display = 'none';
-            if(!email || !password) { errEl.textContent='Fill all fields.'; errEl.style.display='block'; return; }
-            if(password.length<6) { errEl.textContent='Password min 6 characters.'; errEl.style.display='block'; return; }
-            if(isRegister && !name) { errEl.textContent='Enter a display name.'; errEl.style.display='block'; return; }
-            if(isRegister && (!username || username.includes(' ') || username.length<3)) {
-                errEl.textContent='Username must be at least 3 characters, no spaces.'; errEl.style.display='block'; return;
+// ---------- DASHBOARD ----------
+function renderDashboard() {
+    cleanupListeners(); currentScreen='dashboard'; currentGame=null;
+    document.getElementById('header').style.display='flex';
+    document.getElementById('display-name').textContent = currentUser?.displayName||'User';
+    updateCoinsDisplay();
+    document.getElementById('main-content').innerHTML = `
+    <div>
+      <p style="font-weight:700;text-transform:uppercase;color:var(--text2);">🎲 Games (9 total)</p>
+      <div class="games-grid">
+        <div class="game-card" data-game="xo"><div class="icon">❌⭕</div><div class="name">Tic-Tac-Toe</div><span class="mode-tag tag-multi">2P</span></div>
+        <div class="game-card" data-game="connect4"><div class="icon">🔴🟡</div><div class="name">Connect Four</div><span class="mode-tag tag-multi">2P</span></div>
+        <div class="game-card" data-game="uno"><div class="icon">🃏</div><div class="name">Uno</div><span class="mode-tag tag-multi">2P</span></div>
+        <div class="game-card" data-game="checkers"><div class="icon">⚫⚪</div><div class="name">Checkers</div><span class="mode-tag tag-multi">2P</span></div>
+        <div class="game-card" data-game="hangman"><div class="icon">💀📝</div><div class="name">Hangman</div><span class="mode-tag tag-multi">2P</span></div>
+        <div class="game-card" data-game="rps"><div class="icon">✂️📄</div><div class="name">Rock Paper Scissors</div><span class="mode-tag tag-multi">2P</span></div>
+        <div class="game-card" data-game="memory"><div class="icon">🧠</div><div class="name">Memory Match</div><span class="mode-tag tag-solo">Solo</span></div>
+        <div class="game-card" data-game="snake"><div class="icon">🐍</div><div class="name">Snake</div><span class="mode-tag tag-solo">Solo</span></div>
+        <div class="game-card" data-game="numberguess"><div class="icon">🔢</div><div class="name">Number Guess</div><span class="mode-tag tag-solo">Solo</span></div>
+      </div>
+    </div>
+    <div>
+      <p style="font-weight:700;text-transform:uppercase;color:var(--text2);">👥 Friends <button class="btn btn-outline btn-sm" id="btn-add-friend">+ Add</button></p>
+      <div class="friends-row" id="friends-container">Loading...</div>
+    </div>
+    <div>
+      <p style="font-weight:700;text-transform:uppercase;color:var(--text2);">🏆 Overall Leaderboard</p>
+      <table class="leaderboard-table" id="leaderboard-table"><thead><tr><th>Rank</th><th>Player</th><th>Wins</th></tr></thead><tbody></tbody></table>
+    </div>`;
+    document.querySelectorAll('.game-card').forEach(card => {
+        card.addEventListener('click', () => showGameModal(card.dataset.game));
+    });
+    document.getElementById('btn-add-friend').addEventListener('click', showAddFriendModal);
+    loadFriends(); loadLeaderboard(); updateUserOnlineStatus();
+}
+function updateCoinsDisplay() {
+    const el = document.getElementById('coins-display');
+    if(el) el.textContent = '🪙 ' + (userScores.coins||0);
+}
+async function updateUserOnlineStatus() {
+    if(currentUser) await db.collection('users').doc(currentUser.uid).update({lastOnline:firebase.firestore.FieldValue.serverTimestamp()}).catch(()=>{});
+}
+async function loadFriends() {
+    if(!currentUser) return;
+    const container = document.getElementById('friends-container');
+    if(!container) return;
+    try {
+        const snap = await db.collection('friendships').where('participants','array-contains',currentUser.uid).where('status','==','accepted').get();
+        friendsList = [];
+        snap.forEach(doc => {
+            const d = doc.data(); const fuid = d.participants.find(u=>u!==currentUser.uid);
+            if(fuid) friendsList.push({uid:fuid, friendshipId:doc.id, displayName:'', online:false});
+        });
+        if(friendsList.length===0) { container.innerHTML='<span style="color:var(--text2);">No friends yet.</span>'; return; }
+        const userSnaps = await Promise.all(friendsList.map(f=>db.collection('users').doc(f.uid).get()));
+        const now = new Date();
+        container.innerHTML = userSnaps.map((snap,i)=>{
+            const d = snap.exists?snap.data():{};
+            const online = d.lastOnline && (now - d.lastOnline.toDate()) < 5*60*1000;
+            friendsList[i].displayName = d.displayName||'Unknown'; friendsList[i].online = online;
+            return `<div class="friend-chip"><span class="dot ${online?'online':''}"></span>${d.displayName||'Unknown'} ${online?'<span style="font-size:0.6rem;color:var(--green);">Online</span>':''}</div>`;
+        }).join('');
+    } catch(e) { container.innerHTML='<span style="color:var(--red);">Error.</span>'; }
+}
+async function loadLeaderboard() {
+    const tbody = document.querySelector('#leaderboard-table tbody');
+    if(!tbody) return;
+    try {
+        const snap = await db.collection('users').orderBy('totalWins','desc').limit(20).get();
+        tbody.innerHTML = '';
+        snap.forEach((doc,i)=>{
+            const d=doc.data(); const rank=i<3?['🥇','🥈','🥉'][i]:(i+1);
+            tbody.innerHTML += `<tr><td>${rank}</td><td>${d.displayName||'?'}</td><td>${d.totalWins||0}</td></tr>`;
+        });
+        if(snap.empty) tbody.innerHTML='<tr><td colspan="3">No players yet.</td></tr>';
+    } catch(e) {
+        try {
+            const all = await db.collection('users').get();
+            const sorted = all.docs.map(d=>({...d.data()})).filter(d=>typeof d.totalWins==='number').sort((a,b)=>(b.totalWins||0)-(a.totalWins||0)).slice(0,20);
+            tbody.innerHTML = sorted.map((d,i)=>`<tr><td>${i+1}</td><td>${d.displayName||'?'}</td><td>${d.totalWins||0}</td></tr>`).join('')||'<tr><td colspan="3">No data.</td></tr>';
+        } catch(e2) { tbody.innerHTML='<tr><td colspan="3">Unavailable.</td></tr>'; }
+    }
+}
+
+// ---------- PROFILE MODAL ----------
+async function showProfileModal() {
+    if(!currentUser) return;
+    const d = userScores;
+    let pendingRequests = [];
+    try {
+        const snap = await db.collection('friendships').where('participants','array-contains',currentUser.uid).where('status','==','pending').where('sentBy','!=',currentUser.uid).get();
+        pendingRequests = snap.docs;
+    } catch(e) {}
+    const html = `
+      <div style="margin-bottom:12px;"><strong>${d.displayName}</strong> (@${d.username})</div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:8px;"><span>🪙 ${d.coins||0}</span><span>🏆 ${d.totalWins||0} wins</span></div>
+      <button class="btn btn-outline btn-sm" id="copy-username-btn" style="margin-bottom:8px;">📋 Copy Username</button>
+      <button class="btn btn-danger btn-sm" id="clear-games-btn" style="margin-bottom:12px;">🗑️ Clear Finished Games</button>
+      <hr>
+      <div><strong>Friend Requests</strong> ${pendingRequests.length?`<span style="background:var(--red);border-radius:50%;padding:0 6px;">${pendingRequests.length}</span>`:''}</div>
+      <div id="requests-list" style="max-height:150px;overflow-y:auto;">${pendingRequests.length===0?'<p style="color:var(--text2);">No pending requests.</p>':''}</div>
+    `;
+    const overlay = showModal('👤 Profile', html);
+    overlay.querySelector('#copy-username-btn').addEventListener('click', ()=>{
+        navigator.clipboard.writeText(userScores.username).then(()=>showToast('Username copied!')).catch(()=>showToast('Failed'));
+    });
+    overlay.querySelector('#clear-games-btn').addEventListener('click', async ()=>{
+        if(!confirm('Delete all your finished games?')) return;
+        const snap = await db.collection('activeGames').where('status','==','finished').get();
+        const batch = db.batch();
+        snap.forEach(doc => { if(doc.data().participants?.includes(currentUser.uid)) batch.delete(doc.ref); });
+        await batch.commit();
+        showToast('Finished games cleared!');
+    });
+    const listEl = overlay.querySelector('#requests-list');
+    if(pendingRequests.length) {
+        listEl.innerHTML = '';
+        pendingRequests.forEach(async reqDoc => {
+            const data = reqDoc.data();
+            const senderSnap = await db.collection('users').doc(data.sentBy).get();
+            const senderName = senderSnap.exists ? senderSnap.data().displayName : 'Unknown';
+            const div = document.createElement('div');
+            div.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin:4px 0;';
+            div.innerHTML = `<span>${senderName}</span><div><button class="btn btn-accent btn-sm accept-req" data-fid="${reqDoc.id}">Accept</button><button class="btn btn-outline btn-sm reject-req" data-fid="${reqDoc.id}">Reject</button></div>`;
+            listEl.appendChild(div);
+        });
+        listEl.addEventListener('click', async (e)=>{
+            const btn = e.target.closest('button');
+            if(!btn) return;
+            const fid = btn.dataset.fid;
+            if(btn.classList.contains('accept-req')) {
+                await db.collection('friendships').doc(fid).update({status:'accepted'});
+                showToast('Friend accepted!'); loadFriends();
+                btn.parentElement.parentElement.remove();
+            } else if(btn.classList.contains('reject-req')) {
+                await db.collection('friendships').doc(fid).delete();
+                btn.parentElement.parentElement.remove();
             }
-            try {
-                if(isRegister) {
-                    const usernameSnap = await db.collection('users').where('username','==',username).limit(1).get();
-                    if(!usernameSnap.empty) { errEl.textContent='Username already taken.'; errEl.style.display='block'; return; }
-                    const cred = await auth.createUserWithEmailAndPassword(email, password);
-                    await db.collection('users').doc(cred.user.uid).set({
-                        displayName:name, username, email, coins:100, totalWins:0, totalGames:0,
-                        createdAt:firebase.firestore.FieldValue.serverTimestamp(),
-                        lastOnline:firebase.firestore.FieldValue.serverTimestamp(),
-                        wins_xo:0, wins_connect4:0, wins_uno:0, wins_checkers:0, wins_hangman:0,
-                        wins_rps:0, wins_memory:0, wins_snake:0, wins_numberguess:0
+        });
+    }
+}
+
+// ---------- ADD FRIEND MODAL ----------
+async function showAddFriendModal() {
+    const html = `
+    <p style="color:var(--text2);">Enter username or display name.</p>
+    <input type="text" id="friend-search" style="width:100%;padding:10px;border-radius:20px;border:2px solid var(--border);background:var(--surface2);color:var(--text);margin:10px 0;">
+    <button class="btn btn-accent" id="search-btn" style="width:100%;">Search</button>
+    <div id="search-results" style="margin-top:10px;"></div>`;
+    const overlay = showModal('Add Friend', html);
+    overlay.querySelector('#search-btn').addEventListener('click', async ()=>{
+        const query = overlay.querySelector('#friend-search').value.trim().toLowerCase();
+        const resDiv = overlay.querySelector('#search-results');
+        if(!query) return;
+        resDiv.innerHTML = 'Searching...';
+        try {
+            let users = [];
+            const uSnap = await db.collection('users').where('username','==',query).limit(1).get();
+            uSnap.forEach(d=>users.push(d));
+            if(users.length===0) {
+                const all = await db.collection('users').get();
+                all.forEach(doc => { if(doc.data().displayName.toLowerCase().includes(query)) users.push(doc); });
+            }
+            if(users.length===0) { resDiv.innerHTML='No user found.'; return; }
+            const friendSnap = await db.collection('friendships').where('participants','array-contains',currentUser.uid).get();
+            const existing = new Set();
+            friendSnap.forEach(doc=>{ const other=doc.data().participants.find(u=>u!==currentUser.uid); if(other) existing.add(other); });
+            resDiv.innerHTML = users.map(u=>{
+                const d = u.data(); const isYou = u.id===currentUser.uid; const already = existing.has(u.id);
+                return `<div style="display:flex;justify-content:space-between;margin:6px 0;"><span>${d.displayName} (@${d.username}) ${isYou?'(you)':''}</span>
+                ${!isYou&&!already?`<button class="btn btn-accent btn-sm send-req" data-uid="${u.id}">Send</button>`:''}
+                ${already?'<span style="color:var(--green);">Already friends/pending</span>':''}</div>`;
+            }).join('');
+            resDiv.querySelectorAll('.send-req').forEach(b=>{
+                b.addEventListener('click', async ()=>{
+                    const targetUid = b.dataset.uid;
+                    b.disabled=true; b.textContent='Sending...';
+                    await db.collection('friendships').add({
+                        participants:[currentUser.uid,targetUid], status:'pending',
+                        sentBy:currentUser.uid, createdAt:firebase.firestore.FieldValue.serverTimestamp()
                     });
-                    await cred.user.updateProfile({displayName:name});
-                } else {
-                    await auth.signInWithEmailAndPassword(email, password);
-                }
-            } catch(e) {
-                errEl.textContent = e.message.replace('Firebase: ','').replace(/\(auth\/.*\)/,'');
-                errEl.style.display='block';
-            }
-        }
-        function handleLogout() { cleanupListeners(); auth.signOut(); currentUser=null; renderAuthScreen(); }
+                    showToast('Request sent!'); b.textContent='Requested';
+                });
+            });
+        } catch(e) { resDiv.innerHTML='Error.'; }
+    });
+}
 
-        // ---------- DASHBOARD ----------
-        function renderDashboard() {
-            cleanupListeners(); currentScreen='dashboard'; currentGame=null;
-            document.getElementById('header').style.display='flex';
-            document.getElementById('display-name').textContent = currentUser?.displayName||'User';
-            updateCoinsDisplay();
-            document.getElementById('main-content').innerHTML = `
-            <div>
-              <p style="font-weight:700;text-transform:uppercase;color:var(--text2);">🎲 Games (9 total)</p>
-              <div class="games-grid">
-                <div class="game-card" data-game="xo"><div class="icon">❌⭕</div><div class="name">Tic-Tac-Toe</div><span class="mode-tag tag-multi">2P</span></div>
-                <div class="game-card" data-game="connect4"><div class="icon">🔴🟡</div><div class="name">Connect Four</div><span class="mode-tag tag-multi">2P</span></div>
-                <div class="game-card" data-game="uno"><div class="icon">🃏</div><div class="name">Uno</div><span class="mode-tag tag-multi">2P</span></div>
-                <div class="game-card" data-game="checkers"><div class="icon">⚫⚪</div><div class="name">Checkers</div><span class="mode-tag tag-multi">2P</span></div>
-                <div class="game-card" data-game="hangman"><div class="icon">💀📝</div><div class="name">Hangman</div><span class="mode-tag tag-multi">2P</span></div>
-                <div class="game-card" data-game="rps"><div class="icon">✂️📄</div><div class="name">Rock Paper Scissors</div><span class="mode-tag tag-multi">2P</span></div>
-                <div class="game-card" data-game="memory"><div class="icon">🧠</div><div class="name">Memory Match</div><span class="mode-tag tag-solo">Solo</span></div>
-                <div class="game-card" data-game="snake"><div class="icon">🐍</div><div class="name">Snake</div><span class="mode-tag tag-solo">Solo</span></div>
-                <div class="game-card" data-game="numberguess"><div class="icon">🔢</div><div class="name">Number Guess</div><span class="mode-tag tag-solo">Solo</span></div>
-              </div>
-            </div>
-            <div>
-              <p style="font-weight:700;text-transform:uppercase;color:var(--text2);">👥 Friends <button class="btn btn-outline btn-sm" id="btn-add-friend">+ Add</button></p>
-              <div class="friends-row" id="friends-container">Loading...</div>
-            </div>
-            <div>
-              <p style="font-weight:700;text-transform:uppercase;color:var(--text2);">🏆 Overall Leaderboard</p>
-              <table class="leaderboard-table" id="leaderboard-table"><thead><tr><th>Rank</th><th>Player</th><th>Wins</th></tr></thead><tbody></tbody></table>
-            </div>`;
-            document.querySelectorAll('.game-card').forEach(card => {
-                card.addEventListener('click', () => showGameModal(card.dataset.game));
-            });
-            document.getElementById('btn-add-friend').addEventListener('click', showAddFriendModal);
-            loadFriends(); loadLeaderboard(); updateUserOnlineStatus();
-        }
-        function updateCoinsDisplay() {
-            const el = document.getElementById('coins-display');
-            if(el) el.textContent = '🪙 ' + (userScores.coins||0);
-        }
-        async function updateUserOnlineStatus() {
-            if(currentUser) await db.collection('users').doc(currentUser.uid).update({lastOnline:firebase.firestore.FieldValue.serverTimestamp()}).catch(()=>{});
-        }
-        async function loadFriends() {
-            if(!currentUser) return;
-            const container = document.getElementById('friends-container');
-            if(!container) return;
-            try {
-                const snapshot = await db.collection('friendships')
-                    .where('participants','array-contains',currentUser.uid)
-                    .where('status','==','accepted').get();
-                friendsList = [];
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    const friendUid = data.participants.find(u => u !== currentUser.uid);
-                    if(friendUid) friendsList.push({uid:friendUid, friendshipId:doc.id, displayName:'', online:false});
-                });
-                if(friendsList.length===0) {
-                    container.innerHTML = '<span style="color:var(--text2);">No friends yet. Add someone!</span>';
-                    return;
-                }
-                const userSnaps = await Promise.all(friendsList.map(f => db.collection('users').doc(f.uid).get()));
-                const now = new Date();
-                container.innerHTML = userSnaps.map((snap,i) => {
-                    const d = snap.exists ? snap.data() : {};
-                    const isOnline = d.lastOnline && (now - d.lastOnline.toDate()) < 5*60*1000;
-                    friendsList[i].displayName = d.displayName||'Unknown';
-                    friendsList[i].online = isOnline;
-                    return `<div class="friend-chip"><span class="dot ${isOnline?'online':''}"></span>${d.displayName||'Unknown'} ${isOnline?'<span style="font-size:0.6rem;color:var(--green);">Online</span>':''}</div>`;
-                }).join('');
-            } catch(e) { container.innerHTML = '<span style="color:var(--red);">Error loading friends.</span>'; }
-        }
-        async function loadLeaderboard() {
-            const tbody = document.querySelector('#leaderboard-table tbody');
-            if(!tbody) return;
-            try {
-                const snapshot = await db.collection('users').orderBy('totalWins','desc').limit(20).get();
-                tbody.innerHTML = '';
-                snapshot.forEach((doc,i) => {
-                    const d = doc.data();
-                    const rank = i<3 ? ['🥇','🥈','🥉'][i] : (i+1);
-                    tbody.innerHTML += `<tr><td>${rank}</td><td>${d.displayName||'?'}</td><td>${d.totalWins||0}</td></tr>`;
-                });
-                if(snapshot.empty) tbody.innerHTML = '<tr><td colspan="3">No players yet.</td></tr>';
-            } catch(e) {
-                // fallback client sort
-                try {
-                    const allUsers = await db.collection('users').get();
-                    const sorted = allUsers.docs.map(d=>({...d.data(),id:d.id})).filter(d=>typeof d.totalWins==='number').sort((a,b)=>(b.totalWins||0)-(a.totalWins||0)).slice(0,20);
-                    tbody.innerHTML = sorted.map((d,i)=><tr><td>${i+1}</td><td>${d.displayName||'?'}</td><td>${d.totalWins||0}</td></tr>).join('')||'<tr><td colspan="3">No data.</td></tr>';
-                } catch(e2) { tbody.innerHTML = '<tr><td colspan="3">Leaderboard unavailable.</td></tr>'; }
-            }
-        }
+// ---------- PER GAME MODAL (leaderboard + play) ----------
+const gameMeta = {
+    xo:{name:'Tic-Tac-Toe',field:'wins_xo',icon:'❌⭕'},
+    connect4:{name:'Connect Four',field:'wins_connect4',icon:'🔴🟡'},
+    uno:{name:'Uno',field:'wins_uno',icon:'🃏'},
+    checkers:{name:'Checkers',field:'wins_checkers',icon:'⚫⚪'},
+    hangman:{name:'Hangman',field:'wins_hangman',icon:'💀📝'},
+    rps:{name:'Rock Paper Scissors',field:'wins_rps',icon:'✂️📄'},
+    memory:{name:'Memory Match',field:'wins_memory',icon:'🧠'},
+    snake:{name:'Snake',field:'wins_snake',icon:'🐍'},
+    numberguess:{name:'Number Guessing',field:'wins_numberguess',icon:'🔢'}
+};
 
-        // ---------- PROFILE MODAL (cleaner) ----------
-        async function showProfileModal() {
-            if(!currentUser) return;
-            const d = userScores;
-            let pendingRequests = [];
+async function showGameModal(gameType) {
+    const meta = gameMeta[gameType];
+    if(!meta) return;
+    const isMulti = ['xo','connect4','uno','checkers','hangman','rps'].includes(gameType);
+    const loadLB = async () => {
+        const lbDiv = document.getElementById('per-game-lb');
+        if(!lbDiv) return;
+        lbDiv.innerHTML = 'Loading...';
+        try {
+            const snap = await db.collection('users').orderBy(meta.field,'desc').limit(20).get();
+            let rows = '';
+            snap.forEach((doc,i)=>{
+                const d=doc.data(); const wins=d[meta.field]||0; const rank=i<3?['🥇','🥈','🥉'][i]:(i+1);
+                rows += `<tr><td>${rank}</td><td>${d.displayName||'?'}</td><td>${wins}</td></tr>`;
+            });
+            lbDiv.innerHTML = `<table class="leaderboard-table"><thead><tr><th>Rank</th><th>Player</th><th>Wins</th></tr></thead><tbody>${rows||'<tr><td colspan="3">No winners yet.</td></tr>'}</tbody></table>`;
+        } catch(e) {
             try {
-                const snap = await db.collection('friendships')
-                    .where('participants','array-contains',currentUser.uid)
-                    .where('status','==','pending').where('sentBy','!=',currentUser.uid).get();
-                pendingRequests = snap.docs;
-            } catch(e) {}
-            const html = `
-              <div style="margin-bottom:12px;"><strong>${d.displayName}</strong> (@${d.username})</div>
-              <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
-                <span>🪙 ${d.coins||0}</span> <span>🏆 ${d.totalWins||0} wins</span>
-              </div>
-              <button class="btn btn-outline btn-sm" id="copy-username-btn" style="margin-bottom:8px;">📋 Copy Username</button>
-              <button class="btn btn-danger btn-sm" id="clear-games-btn" style="margin-bottom:12px;">🗑️ Clear Finished Games</button>
-              <hr>
-              <div><strong>Friend Requests</strong> ${pendingRequests.length?`<span style="background:var(--red);border-radius:50%;padding:0 6px;">${pendingRequests.length}</span>`:''}</div>
-              <div id="requests-list" style="max-height:150px;overflow-y:auto;">
-                ${pendingRequests.length===0 ? '<p style="color:var(--text2);">No pending requests.</p>' : ''}
-              </div>
-            `;
-            const overlay = showModal('👤 Profile', html);
-            overlay.querySelector('#copy-username-btn').addEventListener('click', () => {
-                navigator.clipboard.writeText(userScores.username).then(()=>showToast('Username copied!')).catch(()=>showToast('Failed'));
-            });
-            overlay.querySelector('#clear-games-btn').addEventListener('click', async () => {
-                if(!confirm('Delete all your finished games?')) return;
-                const snap = await db.collection('activeGames').where('status','==','finished').get();
-                const batch = db.batch();
-                snap.forEach(doc => { if(doc.data().participants?.includes(currentUser.uid)) batch.delete(doc.ref); });
-                await batch.commit();
-                showToast('Finished games cleared!');
-            });
-            // render requests
-            const listEl = overlay.querySelector('#requests-list');
-            if(pendingRequests.length) {
-                listEl.innerHTML = '';
-                pendingRequests.forEach(async reqDoc => {
-                    const data = reqDoc.data();
-                    const senderSnap = await db.collection('users').doc(data.sentBy).get();
-                    const senderName = senderSnap.exists ? senderSnap.data().displayName : 'Unknown';
-                    const div = document.createElement('div');
-                    div.style.cssText = 'display:flex;justify-content:space-between;align-items:center;margin:4px 0;';
-                    div.innerHTML = `<span>${senderName}</span>
-                        <div><button class="btn btn-accent btn-sm accept-req" data-fid="${reqDoc.id}">Accept</button>
-                        <button class="btn btn-outline btn-sm reject-req" data-fid="${reqDoc.id}">Reject</button></div>`;
-                    listEl.appendChild(div);
-                });
-                listEl.addEventListener('click', async (e) => {
-                    const btn = e.target.closest('button');
-                    if(!btn) return;
-                    const fid = btn.dataset.fid;
-                    if(btn.classList.contains('accept-req')) {
-                        await db.collection('friendships').doc(fid).update({status:'accepted'});
-                        showToast('Friend accepted!'); loadFriends();
-                        btn.parentElement.parentElement.remove();
-                    } else if(btn.classList.contains('reject-req')) {
-                        await db.collection('friendships').doc(fid).delete();
-                        btn.parentElement.parentElement.remove();
+                const all = await db.collection('users').get();
+                const sorted = all.docs.map(d=>({...d.data()})).filter(d=>typeof d[meta.field]==='number').sort((a,b)=>(b[meta.field]||0)-(a[meta.field]||0)).slice(0,20);
+                let rows = sorted.map((d,i)=><tr><td>${i+1}</td><td>${d.displayName||'?'}</td><td>${d[meta.field]||0}</td></tr>).join('');
+                lbDiv.innerHTML = `<table class="leaderboard-table"><thead><tr><th>Rank</th><th>Player</th><th>Wins</th></tr></thead><tbody>${rows||'<tr><td colspan="3">No data.</td></tr>'}</tbody></table>`;
+            } catch(e2) { lbDiv.innerHTML='Unavailable.'; }
+        }
+    };
+    const html = `
+    <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <button class="tab-btn active" data-tab="play" style="flex:1;background:var(--accent);color:white;border:none;border-radius:20px;padding:8px;">Play</button>
+        <button class="tab-btn" data-tab="leaderboard" style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:8px;">🏆 Leaderboard</button>
+    </div>
+    <div id="tab-play"><p>${meta.icon} <strong>${meta.name}</strong></p>
+    ${isMulti ? `<div id="friend-challenge-buttons" style="display:flex;flex-direction:column;gap:6px;">${friendsList.length===0?'<p>No friends online.</p>':''}</div>` : '<button class="btn btn-accent" id="start-solo-game">Play Solo</button>'}
+    </div>
+    <div id="tab-leaderboard" style="display:none;"><div id="per-game-lb">Loading...</div></div>`;
+    const overlay = showModal(`${meta.icon} ${meta.name}`, html);
+    setTimeout(loadLB,100);
+    overlay.querySelectorAll('.tab-btn').forEach(btn=>{
+        btn.addEventListener('click',()=>{
+            overlay.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+            btn.classList.add('active');
+            const tab = btn.dataset.tab;
+            overlay.querySelector('#tab-play').style.display = tab==='play'?'block':'none';
+            overlay.querySelector('#tab-leaderboard').style.display = tab==='leaderboard'?'block':'none';
+            if(tab==='leaderboard') loadLB();
+        });
+    });
+    if(isMulti) {
+        const fbDiv = overlay.querySelector('#friend-challenge-buttons');
+        if(fbDiv && friendsList.length) {
+            fbDiv.innerHTML = friendsList.map(f=>`<button class="btn btn-outline" data-uid="${f.uid}" data-name="${f.displayName}">👤 ${f.displayName} ${f.online?'🟢':''}</button>`).join('');
+            fbDiv.querySelectorAll('button[data-uid]').forEach(btn=>{
+                btn.addEventListener('click',()=>{
+                    const uid=btn.dataset.uid, name=btn.dataset.name;
+                    overlay.remove();
+                    switch(gameType){
+                        case'xo':initiateXOGame(uid,name);break;
+                        case'connect4':initiateConnect4Game(uid,name);break;
+                        case'uno':initiateUnoGame(uid,name);break;
+                        case'checkers':initiateCheckersGame(uid,name);break;
+                        case'hangman':initiateHangmanGame(uid,name);break;
+                        case'rps':initiateRPSGame(uid,name);break;
                     }
                 });
-            }
-        }
-
-        // ---------- ADD FRIEND MODAL (same as before) ----------
-        async function showAddFriendModal() {
-            const html = `
-            <p style="color:var(--text2);">Enter username or display name.</p>
-            <input type="text" id="friend-search" style="width:100%;padding:10px;border-radius:20px;border:2px solid var(--border);background:var(--surface2);color:var(--text);margin:10px 0;">
-            <button class="btn btn-accent" id="search-btn" style="width:100%;">Search</button>
-            <div id="search-results" style="margin-top:10px;"></div>`;
-            const overlay = showModal('Add Friend', html);
-            overlay.querySelector('#search-btn').addEventListener('click', async () => {
-                const query = overlay.querySelector('#friend-search').value.trim().toLowerCase();
-                const resDiv = overlay.querySelector('#search-results');
-                if(!query) return;
-                resDiv.innerHTML = 'Searching...';
-                try {
-                    let users = [];
-                    const snapU = await db.collection('users').where('username','==',query).limit(1).get();
-                    snapU.forEach(d => users.push(d));
-                    if(users.length===0) {
-                        const all = await db.collection('users').get();
-                        all.forEach(doc => {
-                            if(doc.data().displayName.toLowerCase().includes(query)) users.push(doc);
-                        });
-                    }
-                    if(users.length===0) { resDiv.innerHTML='No user found.'; return; }
-                    const friendSnap = await db.collection('friendships').where('participants','array-contains',currentUser.uid).get();
-                    const existing = new Set();
-                    friendSnap.forEach(doc => { const other = doc.data().participants.find(u=>u!==currentUser.uid); if(other) existing.add(other); });
-                    resDiv.innerHTML = users.map(u => {
-                        const d = u.data();
-                        const isYou = u.id===currentUser.uid;
-                        const already = existing.has(u.id);
-                        return `<div style="display:flex;justify-content:space-between;margin:6px 0;"><span>${d.displayName} (@${d.username}) ${isYou?'(you)':''}</span>
-                        ${!isYou&&!already?`<button class="btn btn-accent btn-sm send-req" data-uid="${u.id}">Send</button>`:''}
-                        ${already?'<span style="color:var(--green);">Already friends/pending</span>':''}</div>`;
-                    }).join('');
-                    resDiv.querySelectorAll('.send-req').forEach(b => {
-                        b.addEventListener('click', async () => {
-                            const targetUid = b.dataset.uid;
-                            b.disabled=true; b.textContent='Sending...';
-                            await db.collection('friendships').add({
-                                participants:[currentUser.uid,targetUid], status:'pending',
-                                sentBy:currentUser.uid, createdAt:firebase.firestore.FieldValue.serverTimestamp()
-                            });
-                            showToast('Request sent!'); b.textContent='Requested';
-                        });
-                    });
-                } catch(e) { resDiv.innerHTML='Error.'; }
             });
         }
+    } else {
+        const soloBtn = overlay.querySelector('#start-solo-game');
+        if(soloBtn) soloBtn.addEventListener('click',()=>{
+            overlay.remove();
+            if(gameType==='memory') startMemoryGame();
+            else if(gameType==='snake') startSnakeGame();
+            else if(gameType==='numberguess') startNumberGuessGame();
+        });
+    }
+}
 
-        // ==================== CHAT WIDGET ====================
-        document.getElementById('chat-toggle').addEventListener('click', () => {
-            const panel = document.getElementById('chat-panel');
-            panel.classList.toggle('active');
-            if(panel.classList.contains('active')) {
-                loadChatFriendList();
-            } else {
-                if(chatUnsubscribe) { chatUnsubscribe(); chatUnsubscribe=null; }
-                currentChatFriend = null;
+// ========== GAME FUNCTIONS (all 9) ==========
+// XO
+async function initiateXOGame(opponentUid, opponentName) {
+    gameData = { type:'xo', board:Array(9).fill(null), currentTurn:'X', mySymbol:'X', opponentSymbol:'O', gameId:null, opponentUid, opponentName, gameOver:false, winner:null };
+    const ref = await db.collection('activeGames').add({
+        type:'xo', board:Array(9).fill(null), currentTurn:'X',
+        playerX:currentUser.uid, playerXName:currentUser.displayName,
+        playerO:opponentUid, playerOName:opponentName, status:'waiting', winner:null
+    });
+    gameData.gameId=ref.id; currentGame='xo'; currentScreen='game';
+    renderXOBoard(); listenXOGame();
+}
+function renderXOBoard(){
+    const main=document.getElementById('main-content');
+    main.innerHTML=`<div class="game-screen"><button class="btn btn-outline btn-sm" onclick="cleanupListeners();renderDashboard();">← Back</button><h2>❌ Tic-Tac-Toe ⭕</h2><p>You (${gameData.mySymbol}) vs ${gameData.opponentName}</p><span>${gameData.gameOver?(gameData.winner===gameData.mySymbol?'You win!':(gameData.winner==='draw'?'Draw!':'You lose!')):(gameData.currentTurn===gameData.mySymbol?'Your turn':'Opponent turn')}</span><div class="xo-board">${gameData.board.map((v,i)=>`<div class="xo-cell ${v?v.toLowerCase():''}" data-idx="${i}">${v||''}</div>`).join('')}</div>${gameData.gameOver?'<button class="btn btn-accent" onclick="cleanupListeners();renderDashboard();">Dashboard</button>':''}</div>`;
+    if(!gameData.gameOver && gameData.currentTurn===gameData.mySymbol){
+        document.querySelectorAll('.xo-cell').forEach(cell=>cell.addEventListener('click',()=>makeXOMove(parseInt(cell.dataset.idx))));
+    }
+}
+async function makeXOMove(idx){
+    if(gameData.board[idx]||gameData.gameOver||gameData.currentTurn!==gameData.mySymbol) return;
+    gameData.board[idx]=gameData.mySymbol; gameData.currentTurn=gameData.opponentSymbol;
+    const win=checkXOWin(gameData.board);
+    if(win){gameData.gameOver=true;gameData.winner=win;}
+    else if(gameData.board.every(c=>c)){gameData.gameOver=true;gameData.winner='draw';}
+    renderXOBoard();
+    await db.collection('activeGames').doc(gameData.gameId).update({
+        board:gameData.board, currentTurn:gameData.currentTurn,
+        status:gameData.gameOver?'finished':'active', winner:gameData.winner||null
+    }).catch(e=>showToast('Sync error'));
+    if(gameData.winner===gameData.mySymbol) awardWin('xo');
+    else if(gameData.winner==='draw') awardDraw('xo');
+}
+function checkXOWin(b){
+    const lines=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+    for(let [a,b_,c] of lines) if(b[a]&&b[a]===b[b_]&&b[a]===b[c]) return b[a];
+    return null;
+}
+function listenXOGame(){
+    const unsub=db.collection('activeGames').doc(gameData.gameId).onSnapshot(snap=>{
+        if(!snap.exists){cleanupListeners();renderDashboard();return;}
+        const d=snap.data();
+        if(currentUser.uid===d.playerX){gameData.mySymbol='X';gameData.opponentSymbol='O';}
+        else if(currentUser.uid===d.playerO){gameData.mySymbol='O';gameData.opponentSymbol='X';}
+        gameData.board=d.board;gameData.currentTurn=d.currentTurn;
+        gameData.gameOver=d.status==='finished';gameData.winner=d.winner;
+        renderXOBoard();
+        if(gameData.gameOver) setTimeout(()=>{cleanupListeners();renderDashboard();},3000);
+    });
+    activeListeners.push(unsub);
+}
+
+// Connect4
+async function initiateConnect4Game(opponentUid, opponentName) {
+    gameData = { type:'connect4', board:Array(42).fill(null), currentTurn:'red', myColor:'red', opponentColor:'yellow', gameId:null, opponentUid, opponentName, gameOver:false, winner:null };
+    const ref = await db.collection('activeGames').add({
+        type:'connect4', board:Array(42).fill(null), currentTurn:'red',
+        playerRed:currentUser.uid, playerRedName:currentUser.displayName,
+        playerYellow:opponentUid, playerYellowName:opponentName, status:'waiting', winner:null
+    });
+    gameData.gameId=ref.id; currentGame='connect4'; currentScreen='game';
+    renderConnect4Board(); listenConnect4Game();
+}
+function renderConnect4Board(){
+    const main=document.getElementById('main-content');
+    const cols=7, rows=6;
+    let html='<div class="connect4-board">';
+    for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
+        const idx=r*cols+c;
+        html+=`<div class="c4-cell ${gameData.board[idx]||''}" data-col="${c}"></div>`;
+    }
+    html+='</div>';
+    main.innerHTML=`<div class="game-screen"><button class="btn btn-outline btn-sm" onclick="cleanupListeners();renderDashboard();">← Back</button><h2>🔴 Connect Four 🟡</h2><p>You (${gameData.myColor}) vs ${gameData.opponentName} (${gameData.opponentColor})</p><span>${gameData.gameOver?(gameData.winner===gameData.myColor?'You win!':(gameData.winner==='draw'?'Draw!':'You lose!')):(gameData.currentTurn===gameData.myColor?'Your turn':'Opponent turn')}</span>${html}${gameData.gameOver?'<button class="btn btn-accent" onclick="cleanupListeners();renderDashboard();">Dashboard</button>':''}</div>`;
+    if(!gameData.gameOver && gameData.currentTurn===gameData.myColor){
+        document.querySelectorAll('.c4-cell').forEach(cell=>cell.addEventListener('click',()=>dropPiece(parseInt(cell.dataset.col))));
+    }
+}
+function dropPiece(col){
+    if(gameData.gameOver||gameData.currentTurn!==gameData.myColor) return;
+    const cols=7, rows=6;
+    for(let r=rows-1;r>=0;r--){
+        const idx=r*cols+col;
+        if(!gameData.board[idx]){
+            gameData.board[idx]=gameData.myColor; gameData.currentTurn=gameData.opponentColor;
+            if(checkConnect4Win(gameData.board,gameData.myColor)){gameData.gameOver=true;gameData.winner=gameData.myColor;}
+            else if(gameData.board.every(c=>c)){gameData.gameOver=true;gameData.winner='draw';}
+            renderConnect4Board();
+            db.collection('activeGames').doc(gameData.gameId).update({
+                board:gameData.board, currentTurn:gameData.currentTurn,
+                status:gameData.gameOver?'finished':'active', winner:gameData.winner||null
+            }).catch(e=>showToast('Sync error'));
+            if(gameData.winner===gameData.myColor) awardWin('connect4');
+            else if(gameData.winner==='draw') awardDraw('connect4');
+            return;
+        }
+    }
+}
+function checkConnect4Win(board,color){
+    const cols=7,rows=6,dirs=[[0,1],[1,0],[1,1],[1,-1]];
+    for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
+        if(board[r*cols+c]!==color) continue;
+        for(let [dr,dc] of dirs){
+            let count=1;
+            for(let step=1;step<4;step++){
+                const nr=r+dr*step, nc=c+dc*step;
+                if(nr>=0&&nr<rows&&nc>=0&&nc<cols&&board[nr*cols+nc]===color) count++; else break;
             }
-        });
-        document.getElementById('chat-close').addEventListener('click', () => {
-            document.getElementById('chat-panel').classList.remove('active');
-            if(chatUnsubscribe) { chatUnsubscribe(); chatUnsubscribe=null; }
-            currentChatFriend = null;
-        });
-
-        async function loadChatFriendList() {
-            const container = document.getElementById('chat-friend-list');
-            if(friendsList.length===0) {
-                container.innerHTML = '<div style="padding:8px;color:var(--text2);">No friends to chat.</div>';
-                return;
-            }
-            container.innerHTML = friendsList.map(f => `
-                <div class="friend-option ${currentChatFriend&&currentChatFriend.uid===f.uid?'active':''}" data-uid="${f.uid}">
-                    <span class="dot ${f.online?'online':''}" style="display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;"></span>
-                    ${f.displayName}
-                </div>
-            `).join('');
-            container.querySelectorAll('.friend-option').forEach(el => {
-                el.addEventListener('click', () => {
-                    const uid = el.dataset.uid;
-                    const friend = friendsList.find(f=>f.uid===uid);
-                    if(friend) openChatWithFriend(friend);
-                });
-            });
+            if(count>=4) return true;
         }
+    }
+    return false;
+}
+function listenConnect4Game(){
+    const unsub=db.collection('activeGames').doc(gameData.gameId).onSnapshot(snap=>{
+        if(!snap.exists){cleanupListeners();renderDashboard();return;}
+        const d=snap.data();
+        if(currentUser.uid===d.playerRed){gameData.myColor='red';gameData.opponentColor='yellow';}
+        else if(currentUser.uid===d.playerYellow){gameData.myColor='yellow';gameData.opponentColor='red';}
+        gameData.board=d.board;gameData.currentTurn=d.currentTurn;
+        gameData.gameOver=d.status==='finished';gameData.winner=d.winner;
+        renderConnect4Board();
+        if(gameData.gameOver) setTimeout(()=>{cleanupListeners();renderDashboard();},3000);
+    });
+    activeListeners.push(unsub);
+}
 
-        function openChatWithFriend(friend) {
-            if(chatUnsubscribe) chatUnsubscribe();
-            currentChatFriend = friend;
-            document.getElementById('chat-messages').innerHTML = '';
-            document.getElementById('chat-friend-list').querySelectorAll('.friend-option').forEach(el => el.classList.remove('active'));
-            document.querySelector(`.friend-option[data-uid="${friend.uid}"]`)?.classList.add('active');
-
-            const chatId = [currentUser.uid, friend.uid].sort().join('_');
-            const messagesRef = db.collection('chats').doc(chatId).collection('messages').orderBy('timestamp','asc');
-            chatUnsubscribe = messagesRef.onSnapshot(snap => {
-                const msgDiv = document.getElementById('chat-messages');
-                msgDiv.innerHTML = '';
-                snap.forEach(doc => {
-                    const msg = doc.data();
-                    const div = document.createElement('div');
-                    div.className = `chat-message ${msg.sender===currentUser.uid?'mine':'other'}`;
-                    div.textContent = msg.text;
-                    msgDiv.appendChild(div);
-                });
-                msgDiv.scrollTop = msgDiv.scrollHeight;
-            });
-        }
-
-        document.getElementById('chat-send').addEventListener('click', async () => {
-            const input = document.getElementById('chat-input');
-            const text = input.value.trim();
-            if(!text || !currentChatFriend) return;
-            const chatId = [currentUser.uid, currentChatFriend.uid].sort().join('_');
-            try {
-                await db.collection('chats').doc(chatId).collection('messages').add({
-                    sender: currentUser.uid,
-                    text,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                input.value = '';
-            } catch(e) { showToast('Message failed'); }
+// UNO (full logic)
+function createUnoDeck(){
+    const colors=['red','blue','green','yellow'], values=['0','1','2','3','4','5','6','7','8','9','skip','reverse','draw2'];
+    let deck=[];
+    colors.forEach(color=>{
+        values.forEach(val=>{
+            deck.push({color,value:val,full:`${color}-${val}`});
+            if(val!=='0') deck.push({color,value:val,full:`${color}-${val}`});
         });
-        document.getElementById('chat-input').addEventListener('keypress', (e) => {
-            if(e.key==='Enter') document.getElementById('chat-send').click();
-        });
+    });
+    for(let i=0;i<4;i++){deck.push({color:'wild',value:'wild',full:'wild'});deck.push({color:'wild',value:'wild4',full:'wild4'});}
+    return shuffleArray(deck);
+}
+function shuffleArray(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+function canPlayUnoCard(card,topCard){
+    if(card.color==='wild'||card.value==='wild'||card.value==='wild4') return true;
+    return card.color===topCard.color||card.value===topCard.value;
+}
+function playUnoCard(index){
+    if(gameData.gameOver||gameData.currentPlayer!==gameData.myPlayerNum) return;
+    const myHand=gameData.myPlayerNum===1?gameData.player1Hand:gameData.player2Hand;
+    const card=myHand[index];
+    const topCard=gameData.discardPile[gameData.discardPile.length-1];
+    if(!canPlayUnoCard(card,topCard)){showToast('Invalid play!');return;}
+    myHand.splice(index,1); gameData.discardPile.push(card); gameData.lastPlayedCard=card;
+    if(card.value==='skip') gameData.currentPlayer=gameData.currentPlayer===1?2:1;
+    else if(card.value==='reverse') gameData.direction*=-1;
+    else if(card.value==='draw2'){
+        const oppHand=gameData.myPlayerNum===1?gameData.player2Hand:gameData.player1Hand;
+        for(let i=0;i<2;i++){if(gameData.deck.length===0) reshuffleDeck(); oppHand.push(gameData.deck.pop());}
+    } else if(card.value==='wild4'){
+        const oppHand=gameData.myPlayerNum===1?gameData.player2Hand:gameData.player1Hand;
+        for(let i=0;i<4;i++){if(gameData.deck.length===0) reshuffleDeck(); oppHand.push(gameData.deck.pop());}
+        gameData.currentPlayer=gameData.currentPlayer===1?2:1;
+    }
+    if(myHand.length===0){gameData.gameOver=true;gameData.winner=gameData.myPlayerNum;}
+    else{
+        gameData.currentPlayer=gameData.currentPlayer===1?2:1;
+        if(gameData.direction===-1) gameData.currentPlayer=gameData.currentPlayer===1?2:1;
+    }
+    updateUnoFirestore(); renderUnoScreen();
+    if(gameData.winner===gameData.myPlayerNum) awardWin('uno');
+}
+function drawUnoCard(){
+    if(gameData.gameOver||gameData.currentPlayer!==gameData.myPlayerNum) return;
+    if(gameData.deck.length===0) reshuffleDeck();
+    const drawn=gameData.deck.pop();
+    (gameData.myPlayerNum===1?gameData.player1Hand:gameData.player2Hand).push(drawn);
+    gameData.currentPlayer=gameData.currentPlayer===1?2:1;
+    if(gameData.direction===-1) gameData.currentPlayer=gameData.currentPlayer===1?2:1;
+    updateUnoFirestore(); renderUnoScreen();
+}
+function reshuffleDeck(){
+    if(gameData.discardPile.length>1){
+        const top=gameData.discardPile.pop();
+        gameData.deck=shuffleArray(gameData.discardPile);
+        gameData.discardPile=[top];
+    }
+}
+function updateUnoFirestore(){
+    db.collection('activeGames').doc(gameData.gameId).update({
+        player1Hand:gameData.player1Hand, player2Hand:gameData.player2Hand,
+        discardPile:gameData.discardPile, deck:gameData.deck,
+        currentPlayer:gameData.currentPlayer, status:gameData.gameOver?'finished':'active',
+        winner:gameData.winner||null, direction:gameData.direction, lastPlayedCard:gameData.lastPlayedCard
+    }).catch(e=>showToast('Sync error'));
+}
+function renderUnoScreen(){
+    const main=document.getElementById('main-content');
+    const myHand=gameData.myPlayerNum===1?gameData.player1Hand:gameData.player2Hand;
+    const topCard=gameData.discardPile[gameData.discardPile.length-1];
+    const isMyTurn=gameData.currentPlayer===gameData.myPlayerNum&&!gameData.gameOver;
+    main.innerHTML=`<div class="game-screen"><button class="btn btn-outline btn-sm" onclick="cleanupListeners();renderDashboard();">← Back</button><h2>🃏 Uno</h2><p>You vs ${gameData.opponentName} | ${gameData.gameOver?'Game Over':(isMyTurn?'Your turn':"Opponent's turn")}</p><div style="display:flex;gap:10px;"><div>Top card:</div><div class="uno-card" style="background:${topCard.color==='wild'?'#111':topCard.color};cursor:default;">${topCard.full}</div></div><div style="display:flex;flex-wrap:wrap;justify-content:center;">${myHand.map((c,i)=>`<div class="uno-card" style="background:${c.color};${!isMyTurn?'opacity:0.6;pointer-events:none;':''}" data-idx="${i}">${c.full}</div>`).join('')}</div>${isMyTurn?'<button class="btn btn-outline btn-sm" id="draw-uno">Draw Card</button>':''}${gameData.gameOver?`<p>${gameData.winner===gameData.myPlayerNum?'You win!':'You lose!'}</p><button class="btn btn-accent" onclick="cleanupListeners();renderDashboard();">Dashboard</button>`:''}</div>`;
+    if(isMyTurn){
+        document.querySelectorAll('.uno-card[data-idx]').forEach(card=>card.addEventListener('click',()=>playUnoCard(parseInt(card.dataset.idx))));
+        const drawBtn=document.getElementById('draw-uno'); if(drawBtn) drawBtn.addEventListener('click',drawUnoCard);
+    }
+}
+function listenUnoGame(){
+    const unsub=db.collection('activeGames').doc(gameData.gameId).onSnapshot(snap=>{
+        if(!snap.exists){cleanupListeners();renderDashboard();return;}
+        const d=snap.data();
+        if(currentUser.uid===d.player1) gameData.myPlayerNum=1;
+        else if(currentUser.uid===d.player2) gameData.myPlayerNum=2;
+        gameData.player1Hand=d.player1Hand; gameData.player2Hand=d.player2Hand;
+        gameData.discardPile=d.discardPile; gameData.deck=d.deck;
+        gameData.currentPlayer=d.currentPlayer; gameData.gameOver=d.status==='finished'; gameData.winner=d.winner;
+        gameData.direction=d.direction; gameData.lastPlayedCard=d.lastPlayedCard;
+        renderUnoScreen();
+        if(gameData.gameOver) setTimeout(()=>{cleanupListeners();renderDashboard();},3000);
+    });
+    activeListeners.push(unsub);
+}
+async function initiateUnoGame(opponentUid, opponentName){
+    gameData = { type:'uno', deck:createUnoDeck(), player1Hand:[], player2Hand:[], discardPile:[], currentPlayer:1, myPlayerNum:1, gameId:null, opponentUid, opponentName, gameOver:false, winner:null, direction:1, lastPlayedCard:null };
+    for(let i=0;i<7;i++){gameData.player1Hand.push(gameData.deck.pop());gameData.player2Hand.push(gameData.deck.pop());}
+    gameData.discardPile.push(gameData.deck.pop()); gameData.lastPlayedCard=gameData.discardPile[0];
+    const ref = await db.collection('activeGames').add({
+        type:'uno', player1:currentUser.uid, player1Name:currentUser.displayName,
+        player2:opponentUid, player2Name:opponentName,
+        player1Hand:gameData.player1Hand, player2Hand:gameData.player2Hand,
+        discardPile:gameData.discardPile, deck:gameData.deck,
+        currentPlayer:1, status:'waiting', winner:null, direction:1, lastPlayedCard:gameData.lastPlayedCard
+    });
+    gameData.gameId=ref.id; currentGame='uno'; currentScreen='game';
+    renderUnoScreen(); listenUnoGame();
+}
 
-        // ==================== GAME FUNCTIONS (unchanged but for brevity I'll include all essential ones) ====================
-        // (Include all game logic from previous full file, exactly as before. I'm not repeating them to keep response size manageable.)
-        // For the complete file, I'll provide a downloadable link, but here I'll note that the full game code is identical to the last complete answer,
-        // just with the new config and chat widget added. The game functions: initiateXOGame, renderXOBoard, makeXOMove, checkXOWin, listenXOGame,
-        // and similarly for connect4, uno, checkers, hangman, rps, memory, snake, numberguess, plus awardWin, awardDraw.
+// Checkers
+function initCheckersBoard(){
+    const board=Array(64).fill(null);
+    for(let r=0;r<8;r++) for(let c=0;c<8;c++) if((r+c)%2===1) if(r<3) board[r*8+c]='red'; else if(r>4) board[r*8+c]='black';
+    return board;
+}
+async function initiateCheckersGame(opponentUid, opponentName){
+    gameData={type:'checkers',board:initCheckersBoard(),currentPlayer:'black',myColor:'black',opponentColor:'red',selectedPiece:null,gameId:null,opponentUid,opponentName,gameOver:false,winner:null};
+    const ref=await db.collection('activeGames').add({
+        type:'checkers',board:gameData.board,currentPlayer:'black',
+        playerBlack:currentUser.uid,playerBlackName:currentUser.displayName,
+        playerRed:opponentUid,playerRedName:opponentName,status:'waiting',winner:null
+    });
+    gameData.gameId=ref.id;currentGame='checkers';currentScreen='game';
+    renderCheckersScreen();listenCheckersGame();
+}
+function renderCheckersScreen(){
+    const main=document.getElementById('main-content');
+    let html='<div class="checkerboard">';
+    for(let r=0;r<8;r++) for(let c=0;c<8;c++){
+        const idx=r*8+c, piece=gameData.board[idx], isDark=(r+c)%2===1, selected=gameData.selectedPiece===idx;
+        html+=`<div class="checker-cell ${isDark?'dark':'light'} ${selected?'selected':''}" data-idx="${idx}">${piece==='black'?'⚫':piece==='red'?'🔴':''}</div>`;
+    }
+    html+='</div>';
+    main.innerHTML=`<div class="game-screen"><button class="btn btn-outline btn-sm" onclick="cleanupListeners();renderDashboard();">← Back</button><h2>Checkers</h2><p>You (${gameData.myColor}) vs ${gameData.opponentName} | ${gameData.gameOver?'Game Over':(gameData.currentPlayer===gameData.myColor?'Your turn':"Opponent's turn")}</p>${html}${gameData.gameOver?`<p>${gameData.winner===gameData.myColor?'You win!':'You lose!'}</p><button class="btn btn-accent" onclick="cleanupListeners();renderDashboard();">Dashboard</button>`:''}</div>`;
+    if(!gameData.gameOver&&gameData.currentPlayer===gameData.myColor){
+        document.querySelectorAll('.checker-cell').forEach(cell=>cell.addEventListener('click',()=>handleCheckerClick(parseInt(cell.dataset.idx))));
+    }
+}
+function handleCheckerClick(idx){
+    if(gameData.gameOver||gameData.currentPlayer!==gameData.myColor) return;
+    const piece=gameData.board[idx];
+    if(gameData.selectedPiece===null){
+        if(piece&&piece===gameData.myColor){gameData.selectedPiece=idx;renderCheckersScreen();}
+    } else {
+        if(piece===gameData.myColor){gameData.selectedPiece=idx;renderCheckersScreen();}
+        else if(!piece&&isValidCheckerMove(gameData.selectedPiece,idx)){
+            gameData.board[idx]=gameData.board[gameData.selectedPiece];gameData.board[gameData.selectedPiece]=null;
+            gameData.selectedPiece=null;
+            const oppColor=gameData.myColor==='black'?'red':'black';
+            if(!gameData.board.includes(oppColor)){gameData.gameOver=true;gameData.winner=gameData.myColor;}
+            else gameData.currentPlayer=oppColor;
+            updateCheckersFirestore();renderCheckersScreen();
+            if(gameData.winner===gameData.myColor) awardWin('checkers');
+        } else showToast('Invalid move');
+    }
+}
+function isValidCheckerMove(fromIdx,toIdx){
+    const board=gameData.board;
+    const fromRow=Math.floor(fromIdx/8),fromCol=fromIdx%8, toRow=Math.floor(toIdx/8),toCol=toIdx%8;
+    const piece=board[fromIdx];
+    if(!piece||board[toIdx]) return false;
+    const rowDiff=toRow-fromRow, colDiff=Math.abs(toCol-fromCol);
+    if(piece==='black'&&rowDiff>0) return false;
+    if(piece==='red'&&rowDiff<0) return false;
+    if(Math.abs(rowDiff)===1&&colDiff===1) return true;
+    if(Math.abs(rowDiff)===2&&colDiff===2){
+        const midRow=(fromRow+toRow)/2, midCol=(fromCol+toCol)/2, midIdx=midRow*8+midCol;
+        if(board[midIdx]&&board[midIdx]!==piece){board[midIdx]=null;return true;}
+    }
+    return false;
+}
+function updateCheckersFirestore(){
+    db.collection('activeGames').doc(gameData.gameId).update({
+        board:gameData.board,currentPlayer:gameData.currentPlayer,
+        status:gameData.gameOver?'finished':'active',winner:gameData.winner||null
+    }).catch(e=>showToast('Sync error'));
+}
+function listenCheckersGame(){
+    const unsub=db.collection('activeGames').doc(gameData.gameId).onSnapshot(snap=>{
+        if(!snap.exists){cleanupListeners();renderDashboard();return;}
+        const d=snap.data();
+        if(currentUser.uid===d.playerBlack){gameData.myColor='black';gameData.opponentColor='red';}
+        else if(currentUser.uid===d.playerRed){gameData.myColor='red';gameData.opponentColor='black';}
+        gameData.board=d.board;gameData.currentPlayer=d.currentPlayer;
+        gameData.gameOver=d.status==='finished';gameData.winner=d.winner;
+        renderCheckersScreen();
+        if(gameData.gameOver) setTimeout(()=>{cleanupListeners();renderDashboard();},3000);
+    });
+    activeListeners.push(unsub);
+}
 
-        // Because the full game code would make this response extremely long, I'll summarize by saying:
-        // - All game functions from the previous final answer are included exactly as they were.
-        // - The only additions are the chat widget code above and the updated profile modal.
-        // - The firebase config is updated to the new project.
-        // - The game meta, showGameModal, etc. remain identical.
+// Hangman
+async function initiateHangmanGame(opponentUid, opponentName){
+    const word=prompt('Enter a secret word (letters only):').toLowerCase().replace(/[^a-z]/g,'');
+    if(!word||word.length<3){showToast('Invalid word.');renderDashboard();return;}
+    gameData={type:'hangman',word,guessed:[],wrongGuesses:0,maxWrong:6,gameOver:false,winner:null,gameId:null,opponentUid,opponentName,isWordSetter:true};
+    const ref=await db.collection('activeGames').add({
+        type:'hangman',word:gameData.word,guessed:[],wrongGuesses:0,maxWrong:6,
+        playerSetter:currentUser.uid,playerSetterName:currentUser.displayName,
+        playerGuesser:opponentUid,playerGuesserName:opponentName,status:'waiting',winner:null
+    });
+    gameData.gameId=ref.id;currentGame='hangman';currentScreen='game';
+    renderHangmanScreen();listenHangmanGame();
+}
+function renderHangmanScreen(){
+    const main=document.getElementById('main-content');
+    const displayWord=gameData.word.split('').map(l=>gameData.guessed.includes(l)?l:'_').join(' ');
+    const wrongLetters=gameData.guessed.filter(l=>!gameData.word.includes(l)).join(', ');
+    main.innerHTML=`<div class="game-screen"><button class="btn btn-outline btn-sm" onclick="cleanupListeners();renderDashboard();">← Back</button><h2>💀 Hangman</h2><p>${gameData.isWordSetter?'You set the word. Waiting for guesser.':`Wrong: ${gameData.wrongGuesses}/${gameData.maxWrong}`}</p><div style="letter-spacing:8px;font-size:2rem;font-family:monospace;">${displayWord}</div><p style="color:var(--red);">Wrong letters: ${wrongLetters}</p>${!gameData.isWordSetter&&!gameData.gameOver?`<input type="text" id="guess-letter" maxlength="1" placeholder="Guess a letter"><button class="btn btn-accent" id="submit-guess">Guess</button>`:''}${gameData.gameOver?`<p>${gameData.winner==='guesser'?'Guesser won!':'Setter won! Word: '+gameData.word}</p><button class="btn btn-accent" onclick="cleanupListeners();renderDashboard();">Dashboard</button>`:''}</div>`;
+    if(!gameData.isWordSetter&&!gameData.gameOver) document.getElementById('submit-guess').addEventListener('click',submitHangmanGuess);
+}
+function submitHangmanGuess(){
+    const input=document.getElementById('guess-letter');
+    const letter=input.value.toLowerCase().replace(/[^a-z]/g,'');
+    if(!letter||gameData.guessed.includes(letter)) return;
+    input.value=''; gameData.guessed.push(letter);
+    if(!gameData.word.includes(letter)) gameData.wrongGuesses++;
+    if(gameData.word.split('').every(l=>gameData.guessed.includes(l))){gameData.gameOver=true;gameData.winner='guesser';}
+    else if(gameData.wrongGuesses>=gameData.maxWrong){gameData.gameOver=true;gameData.winner='setter';}
+    db.collection('activeGames').doc(gameData.gameId).update({
+        guessed:gameData.guessed,wrongGuesses:gameData.wrongGuesses,
+        status:gameData.gameOver?'finished':'active',winner:gameData.winner
+    }).catch(e=>showToast('Sync error'));
+    renderHangmanScreen();
+    if(gameData.winner==='guesser'&&!gameData.isWordSetter) awardWin('hangman');
+}
+function listenHangmanGame(){
+    const unsub=db.collection('activeGames').doc(gameData.gameId).onSnapshot(snap=>{
+        if(!snap.exists){cleanupListeners();renderDashboard();return;}
+        const d=snap.data();
+        gameData.word=d.word;gameData.guessed=d.guessed;gameData.wrongGuesses=d.wrongGuesses;
+        gameData.gameOver=d.status==='finished';gameData.winner=d.winner;
+        gameData.isWordSetter=(d.playerSetter===currentUser.uid);
+        renderHangmanScreen();
+        if(gameData.gameOver) setTimeout(()=>{cleanupListeners();renderDashboard();},3000);
+    });
+    activeListeners.push(unsub);
+}
 
-        // To provide a complete running file, I recommend copying the full game functions from the previous "complete working file" message 
-        // and pasting them after the chat section. That's what I would do.
-
-        // Here's a placeholder to indicate where they go:
-        // ========= INSERT ALL GAME FUNCTIONS FROM PREVIOUS COMPLETE FILE HERE =========
-
-        // ---------- REWARDS ----------
-        async function awardWin(gameType) {
-            if(!currentUser) return;
-            const ref = db.collection('users').doc(currentUser.uid);
-            const snap = await ref.get(); const d = snap.data()||{};
-            const updates = { coins:(d.coins||0)+25, totalWins:(d.totalWins||0)+1, totalGames:(d.totalGames||0)+1 };
-            updates[`wins_${gameType}`] = (d[`wins_${gameType}`]||0)+1;
-            try { await ref.update(updates); userScores.coins = (d.coins||0)+25; userScores[`wins_${gameType}`] = updates[`wins_${gameType}`]; }
-            catch(e) { showToast('Score update error'); }
-            updateCoinsDisplay(); showToast(`🏆 You won! +25 coins`);
+// RPS
+async function initiateRPSGame(opponentUid, opponentName){
+    gameData={type:'rps',myChoice:null,opponentChoice:null,result:null,gameId:null,opponentUid,opponentName,myPlayerNum:1};
+    const ref=await db.collection('activeGames').add({
+        type:'rps',player1:currentUser.uid,player1Name:currentUser.displayName,
+        player2:opponentUid,player2Name:opponentName,player1Choice:null,player2Choice:null,result:null,status:'waiting'
+    });
+    gameData.gameId=ref.id;currentGame='rps';currentScreen='game';
+    renderRPSScreen();listenRPSGame();
+}
+function renderRPSScreen(){
+    const main=document.getElementById('main-content');
+    const choices=['🪨 Rock','📄 Paper','✂️ Scissors'];
+    main.innerHTML=`<div class="game-screen"><button class="btn btn-outline btn-sm" onclick="cleanupListeners();renderDashboard();">← Back</button><h2>Rock Paper Scissors</h2><p>You vs ${gameData.opponentName}</p>${gameData.myChoice===null?`<div style="display:flex;gap:10px;">${choices.map((c,i)=>`<button class="btn btn-outline" data-choice="${i}">${c}</button>`).join('')}</div>`:`<p>You chose ${choices[gameData.myChoice]}. Waiting for opponent...</p>`}${gameData.result?`<p>${gameData.result==='win'?'You win!':gameData.result==='lose'?'You lose!':'Draw!'}</p><button class="btn btn-accent" onclick="cleanupListeners();renderDashboard();">Dashboard</button>`:''}</div>`;
+    if(gameData.myChoice===null){
+        document.querySelectorAll('button[data-choice]').forEach(btn=>btn.addEventListener('click',async(e)=>{
+            gameData.myChoice=parseInt(e.target.dataset.choice);
+            await db.collection('activeGames').doc(gameData.gameId).update({player1Choice:gameData.myChoice}).catch(e=>showToast('Error'));
+            renderRPSScreen();
+        }));
+    }
+}
+function listenRPSGame(){
+    const unsub=db.collection('activeGames').doc(gameData.gameId).onSnapshot(snap=>{
+        if(!snap.exists){cleanupListeners();renderDashboard();return;}
+        const d=snap.data();
+        if(currentUser.uid===d.player1) gameData.myPlayerNum=1; else if(currentUser.uid===d.player2) gameData.myPlayerNum=2;
+        if(d.player1Choice!==null&&d.player2Choice!==null&&!d.result){
+            const p1=d.player1Choice,p2=d.player2Choice;
+            let result,winnerUid;
+            if(p1===p2) result='draw';
+            else if((p1===0&&p2===2)||(p1===1&&p2===0)||(p1===2&&p2===1)){result='win';winnerUid=d.player1;}
+            else{result='lose';winnerUid=d.player2;}
+            snap.ref.update({result,winnerUid,status:'finished'});
         }
-        async function awardDraw(gameType) {
-            if(!currentUser) return;
-            const ref = db.collection('users').doc(currentUser.uid);
-            const snap = await ref.get(); const d = snap.data()||{};
-            try { await ref.update({ coins:(d.coins||0)+5, totalGames:(d.totalGames||0)+1 }); userScores.coins = (d.coins||0)+5; }
-            catch(e) {}
-            updateCoinsDisplay(); showToast('🤝 Draw! +5 coins');
+        gameData.result=d.result;
+        if(d.status==='finished'){
+            renderRPSScreen();
+            if(d.winnerUid===currentUser.uid) awardWin('rps');
+            else if(d.result==='draw') awardDraw('rps');
+            setTimeout(()=>{cleanupListeners();renderDashboard();},2500);
         }
+    });
+    activeListeners.push(unsub);
+}
 
-        // ==================== AUTH STATE LISTENER ====================
-        auth.onAuthStateChanged(async user => {
-            cleanupListeners();
-            if(user) {
-                currentUser = user;
-                const snap = await db.collection('users').doc(user.uid).get();
-                if(snap.exists) userScores = snap.data();
-                updateCoinsDisplay();
-                await updateUserOnlineStatus();
-                renderDashboard();
-            } else { currentUser = null; renderAuthScreen(); }
+// Memory
+function startMemoryGame(){
+    cleanupListeners();currentScreen='game';currentGame='memory';
+    const emojis=['🍎','🍊','🍋','🍇','🍓','🍒','🥝','🍑'];
+    const cards=[...emojis,...emojis].sort(()=>Math.random()-0.5);
+    gameData={cards,flipped:[],matched:new Set(),moves:0,lockBoard:false};
+    renderMemoryScreen();
+}
+function renderMemoryScreen(){
+    const main=document.getElementById('main-content');
+    main.innerHTML=`<div class="game-screen"><button class="btn btn-outline btn-sm" onclick="cleanupListeners();renderDashboard();">← Back</button><h2>🧠 Memory Match</h2><p>Moves: ${gameData.moves}</p><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-width:340px;">${gameData.cards.map((emoji,i)=>{
+        const flipped=gameData.flipped.includes(i)||gameData.matched.has(i);
+        return `<div style="font-size:2rem;aspect-ratio:1;display:flex;align-items:center;justify-content:center;background:var(--surface2);border:2px solid var(--border);border-radius:10px;cursor:pointer;" data-idx="${i}">${flipped?emoji:'❓'}</div>`;
+    }).join('')}</div>${gameData.matched.size===gameData.cards.length?'<span>All matched!</span><button class="btn btn-accent" onclick="cleanupListeners();renderDashboard();">Dashboard</button>':''}</div>`;
+    document.querySelectorAll('[data-idx]').forEach(cell=>cell.addEventListener('click',()=>memoryClick(parseInt(cell.dataset.idx))));
+}
+function memoryClick(idx){
+    if(gameData.lockBoard||gameData.flipped.includes(idx)||gameData.matched.has(idx)||gameData.flipped.length>=2) return;
+    gameData.flipped.push(idx);gameData.moves++;renderMemoryScreen();
+    if(gameData.flipped.length===2){
+        gameData.lockBoard=true;
+        const [a,b]=gameData.flipped;
+        if(gameData.cards[a]===gameData.cards[b]){
+            gameData.matched.add(a);gameData.matched.add(b);
+            gameData.flipped=[];gameData.lockBoard=false;renderMemoryScreen();
+            if(gameData.matched.size===gameData.cards.length) awardWin('memory');
+        } else setTimeout(()=>{gameData.flipped=[];gameData.lockBoard=false;renderMemoryScreen();},700);
+    }
+}
+
+// Snake
+function startSnakeGame(){
+    cleanupListeners();currentScreen='game';currentGame='snake';
+    gameData={snake:[{x:8,y:8},{x:7,y:8},{x:6,y:8}],direction:{x:1,y:0},food:{x:12,y:8},score:0,gameOver:false,gridSize:20,speed:120,intervalId:null};
+    renderSnakeScreen();startSnakeLoop();
+}
+function renderSnakeScreen(){
+    const main=document.getElementById('main-content');
+    main.innerHTML=`<div class="game-screen"><button class="btn btn-outline btn-sm" onclick="stopSnakeLoop();cleanupListeners();renderDashboard();">← Back</button><h2>🐍 Snake</h2><p>Score: ${gameData.score}</p><canvas id="snake-canvas" width="400" height="400" style="border:2px solid var(--border);border-radius:10px;"></canvas>${gameData.gameOver?`<span>Game Over! Score: ${gameData.score}</span><button class="btn btn-accent" onclick="cleanupListeners();renderDashboard();">Dashboard</button>`:''}</div>`;
+    drawSnake();
+}
+function drawSnake(){
+    const canvas=document.getElementById('snake-canvas');if(!canvas)return;
+    const ctx=canvas.getContext('2d'),cell=canvas.width/gameData.gridSize;
+    ctx.fillStyle='#000';ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle='#ff6b6b';ctx.fillRect(gameData.food.x*cell+1,gameData.food.y*cell+1,cell-2,cell-2);
+    gameData.snake.forEach((s,i)=>{ctx.fillStyle=i===0?'#00d2a0':'#00a880';ctx.fillRect(s.x*cell+1,s.y*cell+1,cell-2,cell-2);});
+}
+function startSnakeLoop(){
+    if(gameData.intervalId) return;
+    gameData.intervalId=setInterval(()=>{
+        if(gameData.gameOver||currentGame!=='snake'){stopSnakeLoop();return;}
+        const head=gameData.snake[0],nh={x:head.x+gameData.direction.x,y:head.y+gameData.direction.y};
+        if(nh.x<0) nh.x=gameData.gridSize-1;if(nh.x>=gameData.gridSize) nh.x=0;
+        if(nh.y<0) nh.y=gameData.gridSize-1;if(nh.y>=gameData.gridSize) nh.y=0;
+        if(gameData.snake.some(s=>s.x===nh.x&&s.y===nh.y)){gameData.gameOver=true;stopSnakeLoop();renderSnakeScreen();if(gameData.score>=10) awardWin('snake');return;}
+        gameData.snake.unshift(nh);
+        if(nh.x===gameData.food.x&&nh.y===gameData.food.y){
+            gameData.score+=10;
+            gameData.food={x:Math.floor(Math.random()*gameData.gridSize),y:Math.floor(Math.random()*gameData.gridSize)};
+        } else gameData.snake.pop();
+        drawSnake();
+    },gameData.speed);
+    document.addEventListener('keydown',snakeKeyHandler);
+}
+function snakeKeyHandler(e){
+    if(currentGame!=='snake'||gameData.gameOver) return;
+    const m={ArrowUp:{x:0,y:-1},ArrowDown:{x:0,y:1},ArrowLeft:{x:-1,y:0},ArrowRight:{x:1,y:0}};
+    const nd=m[e.key];if(!nd)return;
+    if(nd.x===-gameData.direction.x&&nd.y===-gameData.direction.y)return;
+    gameData.direction=nd;e.preventDefault();
+}
+function stopSnakeLoop(){
+    if(gameData.intervalId){clearInterval(gameData.intervalId);gameData.intervalId=null;}
+    document.removeEventListener('keydown',snakeKeyHandler);
+}
+
+// Number Guess
+function startNumberGuessGame(){
+    cleanupListeners();currentScreen='game';currentGame='numberguess';
+    gameData={target:Math.floor(Math.random()*100)+1,attempts:0,maxAttempts:10,gameOver:false,won:false};
+    renderNumberGuessScreen();
+}
+function renderNumberGuessScreen(){
+    const main=document.getElementById('main-content');
+    main.innerHTML=`<div class="game-screen"><button class="btn btn-outline btn-sm" onclick="cleanupListeners();renderDashboard();">← Back</button><h2>🔢 Number Guessing</h2><p>Guess 1-100. Attempts left: ${gameData.maxAttempts-gameData.attempts}</p>${!gameData.gameOver?`<input type="number" id="guess-input" min="1" max="100"><button class="btn btn-accent" id="submit-guess">Guess</button>`:''}<div id="guess-hint" style="margin-top:10px;"></div>${gameData.gameOver?`<p>${gameData.won?'You guessed it!':'Game Over! Number was '+gameData.target}</p><button class="btn btn-accent" onclick="cleanupListeners();renderDashboard();">Dashboard</button>`:''}</div>`;
+    if(!gameData.gameOver) document.getElementById('submit-guess').addEventListener('click',()=>{
+        const input=document.getElementById('guess-input');
+        const guess=parseInt(input.value);
+        if(isNaN(guess)||guess<1||guess>100) return;
+        gameData.attempts++;
+        const hint=document.getElementById('guess-hint');
+        if(guess===gameData.target){gameData.gameOver=true;gameData.won=true;renderNumberGuessScreen();awardWin('numberguess');}
+        else if(gameData.attempts>=gameData.maxAttempts){gameData.gameOver=true;renderNumberGuessScreen();}
+        else{hint.textContent=guess<gameData.target?'📈 Too low!':'📉 Too high!';renderNumberGuessScreen();}
+    });
+}
+
+// ---------- CHAT WIDGET ----------
+document.getElementById('chat-toggle').addEventListener('click',()=>{
+    const panel=document.getElementById('chat-panel');
+    panel.classList.toggle('active');
+    if(panel.classList.contains('active')) loadChatFriendList();
+    else{if(chatUnsubscribe){chatUnsubscribe();chatUnsubscribe=null;}currentChatFriend=null;}
+});
+document.getElementById('chat-close').addEventListener('click',()=>{
+    document.getElementById('chat-panel').classList.remove('active');
+    if(chatUnsubscribe){chatUnsubscribe();chatUnsubscribe=null;}currentChatFriend=null;
+});
+async function loadChatFriendList(){
+    const container=document.getElementById('chat-friend-list');
+    if(friendsList.length===0){container.innerHTML='<div style="padding:8px;color:var(--text2);">No friends to chat.</div>';return;}
+    container.innerHTML=friendsList.map(f=>`
+        <div class="friend-option ${currentChatFriend&&currentChatFriend.uid===f.uid?'active':''}" data-uid="${f.uid}">
+            <span class="dot ${f.online?'online':''}" style="display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;"></span>${f.displayName}
+        </div>`).join('');
+    container.querySelectorAll('.friend-option').forEach(el=>{
+        el.addEventListener('click',()=>{
+            const uid=el.dataset.uid;
+            const friend=friendsList.find(f=>f.uid===uid);
+            if(friend) openChatWithFriend(friend);
         });
-        renderAuthScreen();
-    </script>
+    });
+}
+function openChatWithFriend(friend){
+    if(chatUnsubscribe) chatUnsubscribe();
+    currentChatFriend=friend;
+    document.getElementById('chat-messages').innerHTML='';
+    document.getElementById('chat-friend-list').querySelectorAll('.friend-option').forEach(el=>el.classList.remove('active'));
+    document.querySelector(`.friend-option[data-uid="${friend.uid}"]`)?.classList.add('active');
+    const chatId=[currentUser.uid,friend.uid].sort().join('_');
+    const messagesRef=db.collection('chats').doc(chatId).collection('messages').orderBy('timestamp','asc');
+    chatUnsubscribe=messagesRef.onSnapshot(snap=>{
+        const msgDiv=document.getElementById('chat-messages');
+        msgDiv.innerHTML='';
+        snap.forEach(doc=>{
+            const msg=doc.data();
+            const div=document.createElement('div');
+            div.className=`chat-message ${msg.sender===currentUser.uid?'mine':'other'}`;
+            div.textContent=msg.text;
+            msgDiv.appendChild(div);
+        });
+        msgDiv.scrollTop=msgDiv.scrollHeight;
+    });
+}
+document.getElementById('chat-send').addEventListener('click',async()=>{
+    const input=document.getElementById('chat-input');
+    const text=input.value.trim();
+    if(!text||!currentChatFriend) return;
+    const chatId=[currentUser.uid,currentChatFriend.uid].sort().join('_');
+    await db.collection('chats').doc(chatId).collection('messages').add({
+        sender:currentUser.uid,text,timestamp:firebase.firestore.FieldValue.serverTimestamp()
+    }).catch(e=>showToast('Message failed'));
+    input.value='';
+});
+document.getElementById('chat-input').addEventListener('keypress',e=>{if(e.key==='Enter') document.getElementById('chat-send').click();});
+
+// ---------- REWARDS ----------
+async function awardWin(gameType){
+    if(!currentUser) return;
+    const ref=db.collection('users').doc(currentUser.uid);
+    const snap=await ref.get();const d=snap.data()||{};
+    const updates={coins:(d.coins||0)+25,totalWins:(d.totalWins||0)+1,totalGames:(d.totalGames||0)+1};
+    updates[`wins_${gameType}`]=(d[`wins_${gameType}`]||0)+1;
+    await ref.update(updates).catch(e=>showToast('Score error'));
+    userScores.coins=(d.coins||0)+25;userScores[`wins_${gameType}`]=updates[`wins_${gameType}`];
+    updateCoinsDisplay();showToast(`🏆 You won! +25 coins`);
+}
+async function awardDraw(gameType){
+    if(!currentUser) return;
+    const ref=db.collection('users').doc(currentUser.uid);
+    const snap=await ref.get();const d=snap.data()||{};
+    await ref.update({coins:(d.coins||0)+5,totalGames:(d.totalGames||0)+1}).catch(e=>{});
+    userScores.coins=(d.coins||0)+5;updateCoinsDisplay();showToast('🤝 Draw! +5 coins');
+}
+
+// ========== AUTH STATE LISTENER ==========
+auth.onAuthStateChanged(async user=>{
+    cleanupListeners();
+    if(user){
+        currentUser=user;
+        const snap=await db.collection('users').doc(user.uid).get();
+        if(snap.exists) userScores=snap.data();
+        updateCoinsDisplay();
+        await updateUserOnlineStatus();
+        renderDashboard();
+    } else { currentUser=null; renderAuthScreen(); }
+});
+renderAuthScreen();
+</script>
 </body>
 </html>
